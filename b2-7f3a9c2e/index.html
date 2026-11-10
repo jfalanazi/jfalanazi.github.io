@@ -1,0 +1,894 @@
+<title>تقرير معالجة آثار حريق مبنى 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<style>
+  /* تخطيط: بوابات مستوى المبنى بالأعلى، ثم بطاقتا منطقة (أ: الحريق المباشر، ب: امتداد الدخان) كل وحدة بعدها التنازلي وبوابتها، ثم إحصائيات ومهام مفلترة بالمنطقة والفريق */
+  :root{
+    --bg:#f9f9f7; --surface:#fcfcfb; --surface-2:#f2f1ee;
+    --text:#0b0b0b; --muted:#52514e; --faint:#898781;
+    --border:rgba(11,11,11,.10); --grid:#e1e0d9;
+    --accent:#7a1f1f; --accent-2:#2a78d6;
+    --good:#0ca30c; --warning:#c98500; --critical:#d03b3b; --pending:#898781;
+    --zoneA:#c62828; --zoneB:#0d8fa0; --zoneC:#6d4ad6; --phase-final:#a07a08;
+    --font-ui: "IBM Plex Sans Arabic","Segoe UI",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+      --text:#f0efec; --muted:#c3c2b7; --faint:#898781;
+      --border:rgba(255,255,255,.12); --grid:#2c2c2a;
+      --accent:#a33a3a; --accent-2:#3987e5;
+      --good:#0ca30c; --warning:#fab219; --critical:#e66767; --pending:#9b9890;
+      --zoneA:#ef5350; --zoneB:#13a4b8; --zoneC:#8f7be6; --phase-final:#ad8720;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+    --text:#f0efec; --muted:#c3c2b7; --faint:#898781;
+    --border:rgba(255,255,255,.12); --grid:#2c2c2a;
+    --accent:#a33a3a; --accent-2:#3987e5;
+    --good:#0ca30c; --warning:#fab219; --critical:#e66767; --pending:#9b9890;
+    --zoneA:#ef5350; --zoneB:#13a4b8; --zoneC:#8f7be6; --phase-final:#ad8720;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    direction:rtl; font-family:var(--font-ui); background:var(--bg); color:var(--text);
+    padding-left: max(16px, env(safe-area-inset-left,0px));
+    padding-right: max(16px, env(safe-area-inset-right,0px));
+  }
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--accent);z-index:10}
+  h1,h2,h3{text-wrap:balance; margin:0}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:960px; margin:0 auto; padding-top:calc(14px + env(safe-area-inset-top,0px)); padding-bottom:40px}
+
+  .header{background:var(--accent); color:#fff; border-radius:16px; padding:18px 20px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:12px}
+  .header h1{font-size:19px; font-weight:800}
+  .header .sub{font-size:12.5px; opacity:.85; margin-top:4px}
+  .live{display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.16); border-radius:999px; padding:6px 12px; font-size:12px; white-space:nowrap}
+  .head-tools{display:flex; flex-direction:column; align-items:flex-end; gap:7px}
+  .preview-btn{border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff; border-radius:999px; padding:6px 12px; font-size:11.5px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap}
+  .live .dot{width:7px;height:7px;border-radius:50%;background:#5be35b;animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(91,227,91,.55)}70%{box-shadow:0 0 0 7px rgba(91,227,91,0)}100%{box-shadow:0 0 0 0 rgba(91,227,91,0)}}
+
+  .section-label{font-size:12px; font-weight:800; color:var(--muted); margin:18px 2px 8px; text-transform:none}
+
+  .building-gates{border-radius:14px; padding:14px 18px; border:1.5px solid; transition:background .3s,border-color .3s}
+  .building-gates.not-ready{background:color-mix(in srgb, var(--critical) 9%, var(--surface)); border-color:var(--critical)}
+  .building-gates.ready{background:color-mix(in srgb, var(--good) 11%, var(--surface)); border-color:var(--good)}
+  .gates-title{display:flex; align-items:center; gap:8px; font-weight:800; font-size:13.5px; margin-bottom:8px}
+  .gates-title .badge{font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:999px; color:#fff; direction:ltr; unicode-bidi:isolate}
+  .building-gates.not-ready .badge{background:var(--critical)}
+  .building-gates.ready .badge{background:var(--good)}
+  .gate-item{display:flex; align-items:flex-start; gap:9px; padding:6px 0; border-top:1px dashed var(--border); font-size:12.5px}
+  .gate-item:first-of-type{border-top:none}
+  .gate-item input{margin-top:2px; width:17px; height:17px; accent-color:var(--good); flex:0 0 auto}
+  .gate-item label{font-weight:600; cursor:pointer}
+
+  .zones{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  @media (max-width:900px){.zones{grid-template-columns:1fr 1fr}}
+  @media (max-width:560px){.zones{grid-template-columns:1fr}}
+  .zone-card{background:var(--surface); border:1px solid var(--border); border-top:4px solid; border-radius:12px; padding:14px 16px}
+  .zone-card.a{border-top-color:var(--zoneA)}
+  .zone-card.b{border-top-color:var(--zoneB)}
+  .zone-card.c{border-top-color:var(--zoneC)}
+  .zone-head{display:flex; justify-content:space-between; align-items:flex-start; gap:8px}
+  .zone-head h3{font-size:14.5px; font-weight:800}
+  .zone-head .desc{font-size:11.5px; color:var(--muted); margin-top:3px}
+  .zone-countdown{font-size:20px; font-weight:800; margin-top:10px}
+  .zone-target{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:11.5px; color:var(--muted)}
+  .zone-target input{width:52px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 6px; font-size:12px; text-align:center}
+  .zone-target button{border:none; background:var(--accent-2); color:#fff; border-radius:6px; padding:4px 9px; font-size:11px; cursor:pointer; font-weight:700}
+  .zone-owner{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:11.5px; color:var(--muted)}
+  .zone-owner input{flex:1; min-width:0; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 8px; font-size:12px}
+  .zone-owner button{border:none; background:var(--accent-2); color:#fff; border-radius:6px; padding:4px 9px; font-size:11px; cursor:pointer; font-weight:700; flex:0 0 auto}
+  .zone-summary{margin-top:8px}
+  .zone-summary label{display:block; font-size:11px; color:var(--muted); margin-bottom:3px}
+  .zone-summary textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:7px 9px; font-size:12px; font-family:inherit; min-height:44px; resize:vertical}
+  .zone-summary button{margin-top:4px; border:none; background:var(--accent-2); color:#fff; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:700}
+  .zone-gates{margin-top:10px}
+
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+  @media (max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px}
+  .tile .lbl{font-size:11.5px; color:var(--muted)}
+  .tile .val{font-size:24px; font-weight:800; margin-top:4px}
+  .tile.good .val{color:var(--good)} .tile.crit .val{color:var(--critical)}
+
+  .charts{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  @media (max-width:640px){.charts{grid-template-columns:1fr}}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px}
+  .panel h3{font-size:12.5px; color:var(--muted); font-weight:700; margin-bottom:10px}
+  .bar-row{display:flex; align-items:center; gap:8px; margin:7px 0; font-size:12px}
+  .bar-row .lbl{width:118px; flex:0 0 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .bar-track{flex:1; height:9px; background:var(--grid); border-radius:5px; overflow:hidden; min-width:0}
+  .bar-fill{height:100%; border-radius:5px; transition:width .4s ease}
+  .bar-val{width:20px; flex:0 0 auto; text-align:left; font-weight:700}
+
+  .form-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px}
+  .form-card h3{font-size:14px; margin-bottom:12px}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
+  @media (max-width:560px){.grid3{grid-template-columns:1fr}}
+  label.field-label{display:block; font-size:11.5px; color:var(--muted); margin-bottom:4px}
+  select, input[type=text], textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 10px; font-size:13.5px; font-family:inherit}
+  textarea{resize:vertical; min-height:40px}
+  .field{margin-bottom:10px}
+  .check-field{display:flex; align-items:center; gap:7px; font-size:13px; margin-bottom:10px}
+  .check-field input{width:17px;height:17px}
+  .btn{appearance:none; border:none; border-radius:9px; padding:10px 18px; font-size:13.5px; font-weight:700; background:var(--accent-2); color:#fff; cursor:pointer}
+  .btn:disabled{opacity:.5}
+  .err{color:var(--critical); font-size:12px; margin-top:6px; min-height:14px}
+
+  .filters{display:flex; gap:8px; flex-wrap:wrap}
+  .chip{border:1.5px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:10px; padding:10px 15px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; font-family:inherit; box-shadow:0 1px 2px rgba(0,0,0,.07); transition:background .15s, border-color .15s}
+  .chip:hover{border-color:var(--accent)}
+  .chip.active{background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:0 2px 7px color-mix(in srgb, var(--accent) 40%, transparent)}
+
+  .task-list{display:flex; flex-direction:column; gap:8px}
+  .task{background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:12px 14px; display:flex; flex-direction:column; gap:7px; border-right:4px solid var(--grid)}
+  .task.zone-a{border-right-color:var(--zoneA)}
+  .task.zone-b{border-right-color:var(--zoneB)}
+  .task.zone-c{border-right-color:var(--zoneC)}
+  .task.gate{outline:1.5px solid var(--critical)}
+  .task.deferred-task{border-style:dashed; opacity:.72}
+  .task-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+  .task-desc{font-size:14px; font-weight:600; min-width:0; word-wrap:break-word}
+  .task-meta{display:flex; flex-wrap:wrap; gap:6px; font-size:11.5px; color:var(--muted); align-items:center}
+  .pill{border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700; background:var(--surface-2); color:var(--text)}
+  .prio{font-weight:700}
+  .prio.urgent{color:var(--critical)} .prio.medium{color:var(--warning)} .prio.normal{color:var(--faint)}
+  .lock{color:var(--critical); font-weight:800}
+  .status-select{font-size:12px; font-weight:700; border-radius:999px; padding:5px 10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); cursor:pointer}
+  .status-badge{font-size:12px; font-weight:700; border-radius:999px; padding:5px 10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); white-space:nowrap}
+
+  /* ====== report mode (read-only view: ?report=1) ====== */
+  .report-banner{display:none; background:var(--accent-2); color:#fff; text-align:center; font-size:12.5px; font-weight:700; padding:8px 12px; border-radius:10px; margin-bottom:12px}
+  body.report-mode .report-banner{display:block}
+  body.report-mode .form-card,
+  body.report-mode .zone-target button,
+  body.report-mode .zone-owner button,
+  body.report-mode .zone-summary button{display:none}
+  body.report-mode .zone-target input,
+  body.report-mode .zone-owner input,
+  body.report-mode .zone-summary textarea{
+    pointer-events:none; background:transparent; border-color:transparent; padding:2px 0; color:var(--text); resize:none; min-height:0;
+  }
+  body.report-mode .zone-owner input::placeholder,
+  body.report-mode .zone-summary textarea::placeholder{color:var(--muted)}
+  body.report-mode .gate-item input[type="checkbox"]{pointer-events:none}
+  body.report-mode .gate-item label{cursor:default}
+  body.report-mode .preview-btn{border-color:#fff}
+  /* الزائر لا يرى: قائمة التحقق (البوابات) ولا فلتر المهام المؤجلة */
+  body.report-mode .zone-gates,
+  body.report-mode .gate-tile,
+  body.report-mode .chip[data-f="deferred"]{display:none}
+  /* لا بيانات متاحة: لا تعرض أرقامًا صفرية مضلّلة */
+  body.no-data .tiles,
+  body.no-data .charts,
+  body.no-data .panel,
+  body.no-data .filters,
+  body.no-data .task-list,
+  body.no-data .zone-summary{display:none}
+  body.no-data .no-data-note{display:block}
+  .no-data-note{display:none; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 16px; text-align:center; font-size:13px; color:var(--muted); line-height:1.9}
+  .no-data-note a{display:inline-block; margin-top:10px; background:var(--accent-2); color:#fff; text-decoration:none; border-radius:9px; padding:9px 18px; font-weight:800; font-size:13px}
+  @media print{ .zone-gates, .gate-tile, .chip[data-f="deferred"]{display:none !important} }
+
+  /* ====== وضع الطباعة / تصدير PDF — تقرير نظيف بدون أي أدوات تحكم ====== */
+  @media print{
+    :root, :root:not([data-theme="light"]), :root[data-theme="dark"]{
+      color-scheme: light;
+      --bg:#fff; --surface:#fff; --surface-2:#f4f4f2;
+      --text:#111; --muted:#444; --faint:#777;
+      --border:rgba(0,0,0,.22); --grid:#e3e2db;
+    }
+    body{background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:0}
+    .wrap{max-width:none; padding-top:0; padding-bottom:0}
+    body::before{display:none}
+    /* كل ما هو أداة تحكم يختفي من الطباعة */
+    .form-card, .filters, .preview-btn, .report-banner,
+    .zone-summary button, .zone-target button, .zone-owner button,
+    .task-actions, .icon-btn, .task-edit .edit-actions{display:none !important}
+    /* الحقول تطبع كنص عادي */
+    .zone-summary textarea, .zone-target input, .zone-owner input{
+      border:none !important; background:transparent !important; padding:0 !important;
+      resize:none !important; min-height:0 !important; color:var(--text) !important; overflow:visible !important;
+    }
+    .status-select{appearance:none; -webkit-appearance:none; border:none !important; background:transparent !important; padding:0 !important; font-weight:800}
+    /* لا تقطع البطاقات بين الصفحات */
+    .zone-card, .task, .panel, .tile{break-inside:avoid; page-break-inside:avoid}
+    .header{break-after:avoid}
+    .task{box-shadow:none}
+  }
+  .notes{font-size:12.5px; color:var(--muted); border-top:1px dashed var(--border); padding-top:7px}
+  .task-top-actions{display:flex; align-items:center; gap:6px; flex:0 0 auto}
+  .task-actions{display:flex; align-items:center; gap:6px; flex:0 0 auto}
+  .icon-btn{border:1px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:8px; width:34px; height:34px; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0}
+  .icon-btn.del-btn.confirming{background:var(--critical); border-color:var(--critical); color:#fff; width:auto; padding:0 9px; font-size:11px; font-weight:700}
+  body.report-mode .task-actions{display:none}
+  .task-edit{display:flex; flex-direction:column; gap:8px; width:100%}
+  .task-edit .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
+  @media (max-width:560px){ .task-edit .grid3{grid-template-columns:1fr} }
+  .task-edit select, .task-edit input[type="text"], .task-edit textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 9px; font-size:12.5px; font-family:inherit}
+  .task-edit textarea{min-height:44px; resize:vertical}
+  .task-edit .edit-actions{display:flex; gap:8px}
+  .task-edit .edit-actions button{border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer}
+  .task-edit .save-btn{background:var(--accent-2); color:#fff}
+  .task-edit .cancel-btn{background:var(--surface-2); color:var(--text); border:1px solid var(--border)!important}
+  .age{font-size:11px; color:var(--faint)}
+  .empty{text-align:center; padding:36px 10px; color:var(--muted); font-size:13px}
+  .skeleton{background:var(--surface); border:1px solid var(--border); border-radius:11px; height:60px; opacity:.5}
+  .foot-note{font-size:11.5px; color:var(--faint); text-align:center; margin-top:22px}
+
+  .stack{display:flex; flex-direction:column; gap:14px; margin-top:14px}
+
+  .gantt-outer{position:relative}
+  .gantt-row{display:flex; align-items:center; gap:8px; margin:9px 0}
+  .gantt-label{width:50px; flex:0 0 auto; font-size:16px; font-weight:700; text-align:center; line-height:1}
+  .gantt-track{position:relative; flex:1; min-width:0; height:26px; background:var(--grid); border-radius:6px; overflow:visible}
+  .gantt-bar{position:absolute; top:0; bottom:0; border-radius:6px; overflow:hidden}
+  .gantt-today-line{position:absolute; top:20px; bottom:-6px; width:2px; background:var(--critical); z-index:2}
+  .gantt-today-tag{position:absolute; top:4px; font-size:10px; font-weight:800; color:var(--critical); white-space:nowrap; transform:translateX(-50%)}
+  .gantt-legend{display:flex; flex-wrap:wrap; gap:8px 14px; font-size:11px; color:var(--muted); margin-top:10px; padding-top:10px; border-top:1px dashed var(--border)}
+  .gantt-legend span{white-space:nowrap}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap">
+
+<div class="wrap">
+  <div class="report-banner">📄 تقرير معالجة آثار الحريق — آخر تحديث: الثلاثاء، ١٠ نوفمبر ٢٠٢٦ في ٣:٠٠ ص</div>
+  <div class="header">
+    <div>
+      <h1>📄 تقرير معالجة آثار حريق — مبنى 2</h1>
+      <div class="sub">منطقتان منفصلتان: منطقة الحريق 🔥 وبقية المبنى المتأثرة بالدخان 🌫️</div>
+    </div>
+    <div class="head-tools">
+      <div class="live"><span class="dot"></span><span id="liveLabel">—</span></div>
+      <button class="preview-btn" id="previewBtn" hidden>👁️ معاينة وضع العرض</button>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="zones">
+      <div class="zone-card a">
+        <div class="zone-head"><h3>🅰️ منطقة الحريق 🔥</h3></div>
+        <div class="desc">الضرر الإنشائي/الكهربائي الفعلي — عزل المنطقة كهربائيًا بالكامل عن باقي المبنى، مع مراقبة مستمرة على مدار الساعة لحين التأكد من سلامتها بالكامل</div>
+        <div class="zone-summary"><label>📝 ملخص المرحلة والمهام — وش صار وأي مهام شغالة الآن</label><textarea id="zoneASummary" placeholder="مثال: تم فحص اللوحة، جاري اختبار مقاومة العزل. المهام الحالية: إعادة تمديدات الكهرباء، فحص السلامة الإنشائية..."></textarea><button id="zoneASummarySave">حفظ الملخص</button></div>
+        <div class="zone-gates" id="zoneAGates"></div>
+      </div>
+      <div class="zone-card c">
+        <div class="zone-head"><h3>⚙️ أنظمة المبنى التشغيلية</h3></div>
+        <div class="desc">تكييف/تسخين وري وخدمات الموقع المتوقفة بسبب عزل منطقة الحريق — مسار موازٍ يبدأ اليوم</div>
+        <div class="zone-summary"><label>📝 ملخص المرحلة والمهام — وش صار وأي مهام شغالة الآن</label><textarea id="zoneCSummary" placeholder="مثال: تم فحص اللوحة، جاري اختبار مقاومة العزل. المهام الحالية: إعادة تشغيل التكييف، فحص المولدات..."></textarea><button id="zoneCSummarySave">حفظ الملخص</button></div>
+        <div class="zone-gates" id="zoneCGates"></div>
+      </div>
+      <div class="zone-card b">
+        <div class="zone-head"><h3>🅱️ بقية المبنى 🌫️ (المتأثر من الدخان)</h3></div>
+        <div class="desc">آثار دخان (روائح وبقايا سوداء على الأسطح) عبر فتحات التكييف — بدون ضرر إنشائي، ترجع تدريجيًا حسب اكتمال بوابتها</div>
+        <div class="zone-summary"><label>📝 ملخص المرحلة والمهام — وش صار وأي مهام شغالة الآن</label><textarea id="zoneBSummary" placeholder="مثال: بدأ فريق التنظيف بالدور الثاني. المهام الحالية: تنظيف الدكت، إزالة آثار الدخان..."></textarea><button id="zoneBSummarySave">حفظ الملخص</button></div>
+        <div class="zone-gates" id="zoneBGates"></div>
+      </div>
+    </div>
+
+    <div class="no-data-note">
+      هذا رابط لوحة الإدارة، ولا تظهر بياناته إلا لمن يملك صلاحية عليه.<br>
+      للاطّلاع على حالة المشروع، استخدم رابط التقرير:
+      <a href="https://claude.ai/artifact/2tnFcC5XhjnC5BpsEZ8fcS" target="_blank" rel="noopener">📄 فتح التقرير</a>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><div class="lbl">📋 إجمالي المهام</div><div class="val num" id="tTotal">0</div></div>
+      <div class="tile good"><div class="lbl">✅ منجز</div><div class="val num" id="tDone">0</div></div>
+      <div class="tile crit gate-tile"><div class="lbl">🔒 بوابات متبقية (الكل)</div><div class="val num" id="tGateLeft">0</div></div>
+      <div class="tile"><div class="lbl">📈 نسبة الإنجاز</div><div class="val num" id="tPct">0%</div></div>
+    </div>
+
+    <div class="panel">
+      <h3>الخط الزمني للمراحل (أيام من بداية الحادثة) — النسبة داخل كل شريط = الإنجاز الفعلي</h3>
+      <div id="ganttChart"></div>
+    </div>
+
+    <div class="charts">
+      <div class="panel"><h3>توزيع المهام حسب المنطقة</h3><div id="chartZone"></div></div>
+      <div class="panel"><h3>توزيع الحالات</h3><div id="chartStatus"></div></div>
+    </div>
+
+    <div class="form-card">
+      <h3>➕ إضافة مهمة</h3>
+      <div class="grid3">
+        <div class="field">
+          <label class="field-label">المنطقة</label>
+          <select id="fZone">
+            <option value="a">🅰️ منطقة الحريق 🔥</option>
+            <option value="c">⚙️ أنظمة المبنى</option>
+            <option value="b">🅱️ بقية المبنى 🌫️</option>
+            <option value="building">🏢 مستوى المبنى</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">الفريق المسؤول</label>
+          <select id="fTeam">
+            <option value="maint">🔧 فريق الصيانة والتشغيل</option>
+            <option value="cleaning">🧹 فريق التنظيف والتجهيز</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">الأولوية</label>
+          <select id="fPriority">
+            <option value="urgent">🔺 عاجل</option>
+            <option value="medium" selected>● متوسط</option>
+            <option value="normal">– عادي</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label class="field-label">وصف المهمة</label><input type="text" id="fDesc" placeholder="مثال: فحص وإعادة تمديدات الكهرباء بمنطقة الحريق"></div>
+      <div class="check-field"><input type="checkbox" id="fGate"><label for="fGate">🔒 هذه المهمة شرط لإحدى البوابات</label></div>
+      <div class="field"><label class="field-label">ملاحظات (اختياري)</label><textarea id="fNotes" placeholder="تفاصيل، اسم المقاول المكلّف..."></textarea></div>
+      <button class="btn" id="fSubmit">إضافة للمتابعة</button>
+      <div class="err" id="fErr"></div>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="chip active" data-f="all">الكل</button>
+      <button class="chip" data-f="zone-a">🅰️ منطقة الحريق 🔥</button>
+      <button class="chip" data-f="zone-c">⚙️ أنظمة المبنى</button>
+      <button class="chip" data-f="zone-b">🅱️ بقية المبنى 🌫️</button>
+      <button class="chip" data-f="deferred">📝 مؤجلة</button>
+    </div>
+
+    <div class="task-list" id="taskList">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ====== بيانات مجمّدة — تُولَّد آليًا، لا تُحرَّر يدويًا ====== */
+  /* ==DATA_START== */
+  var FROZEN_DATA = {"tasks":[{"id":"seed_a1","createdAt":"2026-11-09T13:44:00.000Z","description":"فحص بصري شامل من فني كهرباء مختص للوحة والكابلات المتضررة","gate":true,"notes":"","priority":"urgent","status":"done","team":"maint","updatedAt":"2026-11-09T21:37:48.068Z","zone":"a"},{"id":"seed_a2","createdAt":"2026-11-09T13:44:01.000Z","description":"فحص تشغيل الانظمة المتعطله بمنطقه الحريق","gate":true,"notes":"لا يُعاد تشغيل أي نظام متعطل قبل الفحص","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-09T21:55:04.976Z","zone":"a"},{"id":"seed_a3","createdAt":"2026-11-09T13:44:02.000Z","description":"إصلاح/إعادة عزل الكابلات التالفة فعليًا","gate":false,"notes":"","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-09T22:24:18.229Z","zone":"a"},{"id":"seed_b1","createdAt":"2026-11-09T13:44:13.000Z","description":"فحص وتنظيف الدكت المركزي بالكامل","gate":true,"notes":"خطوة تحضيرية:\n تسليم خريطة نظام الدكت (جارٍ العمل عليها الآن) — التنظيف الفعلي بكره","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-09T21:53:19.035Z","zone":"b"},{"id":"seed_b2","createdAt":"2026-11-09T13:44:14.000Z","description":"تنظيف اثار الدخان من الأسطح والجدران بكل الطوابق المتأثرة","gate":false,"notes":"","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-09T22:21:24.665Z","zone":"b"},{"id":"seed_b3","createdAt":"2026-11-09T13:44:15.000Z","description":"معالجة رائحة الدخان حسب تقييم المختص","gate":false,"notes":"","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-09T21:39:36.801Z","zone":"b"},{"id":"seed_b4","createdAt":"2026-11-09T13:44:16.000Z","description":"تقييم الفرش والمحتويات: تنظيف مقابل استبدال","gate":false,"notes":"","priority":"medium","status":"deferred","team":"cleaning","updatedAt":"2026-11-09T22:19:36.371Z","zone":"b"},{"id":"seed_b5","createdAt":"2026-11-09T13:44:17.000Z","description":"تشغيل تجريبي للتكييف بعد التأكد من زوال الرائحة","gate":false,"notes":"","priority":"medium","status":"pending","team":"maint","zone":"b"},{"id":"seed_c4","createdAt":"2026-11-09T13:44:09.000Z","description":"تشغيل مؤقت لنظام الكميرات (تمديدات)","gate":false,"notes":"","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-09T22:22:36.946Z","zone":"c"},{"id":"seed_c5","createdAt":"2026-11-09T13:44:10.000Z","description":"تشغيل تجريبي لنظام الري","gate":false,"notes":"","priority":"medium","status":"pending","team":"maint","zone":"c"},{"id":"seed_c6","createdAt":"2026-11-09T13:44:11.000Z","description":"تشغيل تجريبي للتكييف/التسخين المركزي بعد اعتماد دائرته","gate":false,"notes":"","priority":"medium","status":"pending","team":"maint","zone":"c"},{"id":"seed_g1","createdAt":"2026-11-09T13:44:19.000Z","description":"فتح صلاحيات اللوحة الحية للموظفين الثلاثة (Share → Contributor)","gate":false,"notes":"","priority":"urgent","status":"deferred","team":"maint","updatedAt":"2026-11-09T22:18:57.927Z","zone":"building"},{"id":"seed_p1_1","createdAt":"2026-11-09T16:42:00.000Z","description":"توثيق مصوّر شامل لتقييم الأضرار (كل المناطق)","gate":false,"notes":"قيد التنفيذ","priority":"urgent","status":"progress","team":"cleaning","zone":"building"},{"id":"seed_p2_1","createdAt":"2026-11-09T16:42:01.000Z","description":"إتلاف والتخلص النهائي من مخلفات الأثاث المحترق","gate":false,"notes":"مجدولة غدًا الصباح","priority":"urgent","status":"done","team":"cleaning","updatedAt":"2026-11-09T21:38:49.967Z","zone":"a"},{"id":"seed_p4_1","createdAt":"2026-11-09T16:42:02.000Z","description":"فحص وإصلاح مواسير المياه المتضررة بالطوابق العليا","gate":false,"notes":"اكتُشفت أثناء التقييم — تدخل ضمن إصلاحات التشغيل","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-09T22:11:27.101Z","zone":"a"},{"id":"seed_p6_1","createdAt":"2026-11-09T16:42:04.000Z","description":"إزالة الستائر والسجاد، حصرها وترقيمها، قبل تسليمها للغسيل","gate":false,"notes":"البدء فوري بالتوازي — لا ينتظر شي","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-09T22:11:10.747Z","zone":"b"},{"id":"seed_p7_1","createdAt":"2026-11-09T16:42:06.000Z","description":"نقل الأثاث القابل للتنظيف (كنب/لوحات) لمنطقة خارجية مؤقتة","gate":false,"notes":"البدء فوري بالتوازي","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-09T22:18:13.476Z","zone":"b"},{"id":"seed_p8_1","createdAt":"2026-11-09T16:42:08.000Z","description":"غسيل ودهان المبنى بالكامل + إعادة تركيب الستائر/السجاد/الأثاث + تشغيل تجريبي نهائي شامل","gate":false,"notes":"⏳ ينتظر: اكتمال كل مهام منطقة أ + الأنظمة التشغيلية + تنظيف الدكت — هذه الخطوة هي المسار الحرج النهائي لكل المشروع","priority":"urgent","status":"deferred","team":"maint","updatedAt":"2026-11-09T22:17:53.706Z","zone":"building"}],"meta":{"gates":{"civilDefense":true,"ductCleaning":false,"electricalSafety":false,"fireAlarmCert":false},"incident":{"startedAt":"2026-11-09T11:49:00.000Z","targetDays":7},"owners":{"a":"","b":"","c":"عماد"},"summaries":{"a":"اكتمل: الفحص البصري للوحة والكابلات، وإتلاف مخلفات الأثاث المحترق. \nجارٍ: فحص تشغيل الأنظمة المتعطلة، إعادة عزل الكابلات التالفة، وإصلاح مواسير المياه بالطوابق العليا.\n تسلسل إلزامي: إنهاء إصلاح المواسير وتجفيف المنطقة قبل إعادة تغذية أي دائرة كهربائية.","b":"المهام طويلة ومفتوحة، والعمل يسير بالتوازي دون انتظار.\nجارٍ: تنظيف آثار الدخان من الأسطح والجدران، معالجة الرائحة، إزالة وترقيم الستائر والسجاد، ونقل الأثاث القابل للتنظيف. \nالمتطلب: الدكت المركزي — الخريطة ارسلت والتنظيف الفعلي الصباح.","c":"جارٍ: تشغيل مؤقت لنظام الكاميرات لاستعادة التغطية الأمنية. الري والتكييف/التسخين المركزي موقوفان بانتظار اعتماد الدائرة الكهربائية من منطقة الحريق"},"zones":{"a":2,"b":6,"c":2}},"generatedAt":"2026-11-10T00:00:16.627Z"};
+  /* ==DATA_END== */
+  function frozenDoc(p){
+    var key = String(p).split("/")[1];
+    return {
+      onSnapshot: function(next){
+        var d = FROZEN_DATA.meta && FROZEN_DATA.meta[key];
+        next(d ? {exists:true, data:function(){ return d; }}
+               : {exists:false, data:function(){ return {}; }});
+      },
+      update:function(){ return Promise.reject({code:"not_granted"}); },
+      set:function(){ return Promise.reject({code:"not_granted"}); },
+      delete:function(){ return Promise.reject({code:"not_granted"}); }
+    };
+  }
+  function frozenCollection(p){
+    return {
+      doc:function(id){ return frozenDoc(p+"/"+id); },
+      orderBy:function(){ return this; },
+      limit:function(){ return this; },
+      onSnapshot:function(next){
+        next({docs: FROZEN_DATA.tasks.map(function(t){
+          return {id:t.id, data:function(){ return t; }};
+        })});
+      },
+      add:function(){ return Promise.reject({code:"not_granted"}); }
+    };
+  }
+  var FROZEN_DB   = { doc: frozenDoc, collection: frozenCollection };
+  var FROZEN_USER = {
+    isOwner:function(){ return false; },
+    canEdit:function(){ return false; },
+    can:function(perm){ return perm === "data.write" ? false : false; }
+  };
+
+
+  var TEAMS = {
+    maint:{label:"🔧 فريق الصيانة والتشغيل"},
+    cleaning:{label:"🧹 فريق التنظيف والتجهيز"}
+  };
+  var STATUS = {
+    done:{label:"منجز",icon:"✅",color:"var(--good)"}, progress:{label:"جاري العمل",icon:"🟡",color:"var(--warning)"},
+    pending:{label:"بانتظار مرحلة سابقة",icon:"⏳",color:"var(--pending)"}, late:{label:"متأخر",icon:"🔴",color:"var(--critical)"},
+    deferred:{label:"مؤجل",icon:"📝",color:"var(--faint)"}
+  };
+  var PRIORITY = {
+    urgent:{label:"عاجل",icon:"🔺",cls:"urgent"}, medium:{label:"متوسط",icon:"●",cls:"medium"}, normal:{label:"عادي",icon:"–",cls:"normal"}
+  };
+  var ZONES = {
+    a:{label:"🅰️ منطقة الحريق 🔥", cls:"zone-a"},
+    c:{label:"⚙️ أنظمة المبنى", cls:"zone-c"},
+    b:{label:"🅱️ بقية المبنى 🌫️", cls:"zone-b"},
+    building:{label:"🏢 مستوى المبنى", cls:""}
+  };
+  // كل بوابة لها نطاق: a أو b (تخص منطقة بعينها)
+  var GATES = [
+    {key:"electricalSafety", scope:"a", label:"الكهرباء مفحوصة ومُعاد تمديدها واعتُمدت سليمة"},
+    {key:"ductCleaning",     scope:"b", label:"الدكت مفحوص ومنظّف، وتشغيل تجريبي بدون رائحة دخان"}
+  ];
+
+  var els = {};
+  ["liveLabel","previewBtn","zoneASummary","zoneASummarySave","zoneAGates",
+   "zoneCSummary","zoneCSummarySave","zoneCGates",
+   "zoneBSummary","zoneBSummarySave","zoneBGates","tTotal","tDone","tGateLeft","tPct",
+   "chartZone","chartStatus","ganttChart","taskList","filters","fZone","fTeam","fPriority","fDesc","fGate","fNotes","fSubmit","fErr"
+  ].forEach(function(id){ els[id] = document.getElementById(id); });
+
+  var activeFilter = "all";
+  var tasks = [];
+  var editingId = null;
+  var deletingId = null;
+  var gatesState = {electricalSafety:false, ductCleaning:false};
+  var incidentStartedAt = null;
+  var zoneTargets = {a:2, c:2, b:10, final:2};
+  var zoneSummaries = {a:"", c:"", b:""};
+  var db = null;
+  var lockedToReport = false;
+  var reportMode = (function(){
+    try { if(/[?&#]report=1(\b|$)/.test(location.search + location.hash)) return true; } catch(e){}
+    try {
+      if(window.parent && window.parent !== window){
+        var p = window.parent.location;
+        if(/[?&#]report=1(\b|$)/.test(p.search + p.hash)) return true;
+      }
+    } catch(e){}
+    try { if(document.referrer && /[?&#]report=1(\b|$)/.test(document.referrer)) return true; } catch(e){}
+    return false;
+  })();
+  if(reportMode) document.body.classList.add("report-mode");
+
+  function escapeHtml(s){
+    return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; });
+  }
+  function relTime(iso){
+    if(!iso) return "";
+    var d = new Date(iso); if(isNaN(d.getTime())) return "";
+    var mins = Math.round((Date.now()-d.getTime())/60000);
+    if(mins<1) return "الآن"; if(mins<60) return "قبل "+mins+" د";
+    var hrs = Math.round(mins/60); if(hrs<24) return "قبل "+hrs+" س";
+    return "قبل "+Math.round(hrs/24)+" ي";
+  }
+
+  function renderGateGroup(container, scope){
+    var items = GATES.filter(function(g){ return g.scope === scope; });
+    container.innerHTML = items.map(function(g){
+      return '<div class="gate-item"><input type="checkbox" id="gate-'+g.key+'" data-key="'+g.key+'" '+(gatesState[g.key]?'checked':'')+'>'+
+        '<div><label for="gate-'+g.key+'">'+g.label+'</label></div></div>';
+    }).join("");
+    Array.prototype.forEach.call(container.querySelectorAll("input"), function(cb){
+      cb.addEventListener("change", function(){ toggleGate(cb.getAttribute("data-key"), cb.checked); });
+    });
+    return items;
+  }
+
+  function renderGates(){
+    renderGateGroup(els.zoneAGates, "a");
+    renderGateGroup(els.zoneBGates, "b");
+
+    var totalGates = GATES.length;
+    var totalDone = GATES.filter(function(g){ return gatesState[g.key]; }).length;
+    els.tGateLeft.textContent = totalGates - totalDone;
+  }
+
+  function toggleGate(key, value){
+    if(!db) return;
+    gatesState[key] = value;
+    renderGates();
+    db.doc("meta/gates").update((function(){ var d={}; d[key]=value; return d; })())
+      .catch(function(e){ handleWriteError(e); db.doc("meta/gates").set(Object.assign({}, gatesState)).catch(handleWriteError); });
+  }
+
+  function renderCountdowns(){
+    renderGantt();
+  }
+
+  // يُستدعى إمّا من فحص الصلاحية أو عند رفض أي عملية حفظ فعليًا
+  function lockToReport(){
+    if(lockedToReport) return;
+    lockedToReport = true;
+    reportMode = true;
+    document.body.classList.add("report-mode");
+    if(els.previewBtn) els.previewBtn.hidden = true;
+    editingId = null; deletingId = null;
+    renderList();
+  }
+  // الأخطاء التي تعني "ما عندك صلاحية الكتابة"
+  function isPermissionError(e){
+    if(!e) return false;
+    var c = String(e.code || e.name || "").toLowerCase();
+    var m = String(e.message || "").toLowerCase();
+    return c.indexOf("permission") > -1 || c.indexOf("invalid_argument") > -1 ||
+           c.indexOf("not_granted") > -1 || c.indexOf("denied") > -1 ||
+           m.indexOf("permission") > -1 || m.indexOf("denied") > -1;
+  }
+  function handleWriteError(e){
+    if(isPermissionError(e)) lockToReport();
+  }
+
+  function renderSummaries(){
+    [["a", els.zoneASummary], ["c", els.zoneCSummary], ["b", els.zoneBSummary]].forEach(function(pair){
+      var el = pair[1];
+      el.value = zoneSummaries[pair[0]] || "";
+      // في وضع العرض: لا تُظهر نص المثال كأنه ملخص حقيقي
+      if(reportMode) el.placeholder = el.value ? "" : "— لم يُسجَّل ملخص بعد —";
+    });
+  }
+  // تأكيد بصري واضح لكل عملية حفظ — نجاحًا أو فشلًا
+  function flashBtn(btn, text, ok){
+    if(!btn) return;
+    if(!btn.dataset.label) btn.dataset.label = btn.textContent;
+    btn.textContent = text;
+    btn.style.background = ok === null ? "" : (ok ? "var(--good)" : "var(--critical)");
+    if(ok !== null){
+      clearTimeout(btn._t);
+      btn._t = setTimeout(function(){
+        btn.textContent = btn.dataset.label;
+        btn.style.background = "";
+      }, 2500);
+    }
+  }
+
+  function saveZoneSummary(zoneKey, textarea, btn){
+    if(!db){ flashBtn(btn, "✗ لا يوجد اتصال", false); return; }
+    var v = textarea.value.trim();
+    zoneSummaries[zoneKey] = v;
+    var data = {}; data[zoneKey] = v;
+    flashBtn(btn, "جارٍ الحفظ…", null);
+    db.doc("meta/summaries").update(data)
+      .then(function(){ flashBtn(btn, "✓ تم الحفظ", true); })
+      .catch(function(e){
+        // المستند غير موجود بعد → أنشئه
+        db.doc("meta/summaries").set(Object.assign({}, zoneSummaries))
+          .then(function(){ flashBtn(btn, "✓ تم الحفظ", true); })
+          .catch(function(e2){
+            handleWriteError(e2);
+            flashBtn(btn, isPermissionError(e2) ? "✗ لا تملك صلاحية" : "✗ لم يُحفظ", false);
+          });
+      });
+  }
+  els.zoneASummarySave.addEventListener("click", function(){ saveZoneSummary("a", els.zoneASummary, els.zoneASummarySave); });
+  els.zoneCSummarySave.addEventListener("click", function(){ saveZoneSummary("c", els.zoneCSummary, els.zoneCSummarySave); });
+  els.zoneBSummarySave.addEventListener("click", function(){ saveZoneSummary("b", els.zoneBSummary, els.zoneBSummarySave); });
+
+  function renderBars(container, counts, order, colorOf, labelOf){
+    var max = 0; order.forEach(function(k){ if((counts[k]||0)>max) max=counts[k]; }); if(max===0) max=1;
+    container.innerHTML = order.map(function(k){
+      var v = counts[k]||0, pct = Math.round((v/max)*100);
+      return '<div class="bar-row"><div class="lbl">'+labelOf(k)+'</div>'+
+        '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+colorOf(k)+'"></div></div>'+
+        '<div class="bar-val num">'+v+'</div></div>';
+    }).join("");
+  }
+
+  function render(){
+    var statTasks = tasks.filter(function(t){ return t.status !== "deferred"; });
+    var total = statTasks.length;
+    var statusCounts = {done:0,progress:0,pending:0,late:0};
+    var zoneCounts = {a:0,c:0,b:0,building:0};
+    statTasks.forEach(function(t){
+      if(statusCounts[t.status]!==undefined) statusCounts[t.status]++;
+      if(zoneCounts[t.zone]!==undefined) zoneCounts[t.zone]++;
+    });
+    els.tTotal.textContent = total;
+    els.tDone.textContent = statusCounts.done;
+    els.tPct.textContent = total ? Math.round((statusCounts.done/total)*100)+"%" : "0%";
+
+    renderBars(els.chartStatus, statusCounts, ["done","progress","pending","late"],
+      function(k){return STATUS[k].color;}, function(k){return STATUS[k].icon+" "+STATUS[k].label;});
+    renderBars(els.chartZone, zoneCounts, ["a","c","b","building"],
+      function(k){return k==="a"?"var(--zoneA)":k==="c"?"var(--zoneC)":k==="b"?"var(--zoneB)":"var(--phase-final)";},
+      function(k){return ZONES[k].label;});
+
+    renderGantt();
+    renderList();
+    els.liveLabel.textContent = "محدّثة الآن — " + total + " مهمة";
+  }
+
+  function renderGantt(){
+    if(!incidentStartedAt){ els.ganttChart.innerHTML = ""; return; }
+    var start = new Date(incidentStartedAt);
+    var daysSince = (Date.now() - start.getTime()) / (24*60*60*1000);
+
+    var systemsEnd = Math.max(zoneTargets.a, zoneTargets.c, zoneTargets.b);
+    var finalTarget = zoneTargets.final != null ? zoneTargets.final : 2;
+    var lanes = [
+      {key:"a", label:"🅰️🔥", full:"🅰️ منطقة الحريق 🔥", startDay:0, endDay:zoneTargets.a, color:"var(--zoneA)"},
+      {key:"c", label:"⚙️", full:"⚙️ أنظمة المبنى", startDay:0, endDay:zoneTargets.c, color:"var(--zoneC)"},
+      {key:"b", label:"🅱️🌫️", full:"🅱️ بقية المبنى 🌫️", startDay:0, endDay:zoneTargets.b, color:"var(--zoneB)"},
+      {key:"final", label:"🏁", full:"🏁 المرحلة الختامية (دهان وتركيب)", startDay:systemsEnd, endDay:systemsEnd+finalTarget, color:"var(--phase-final)"}
+    ];
+    var totalSpan = Math.max(systemsEnd+finalTarget, daysSince, 1) + 1;
+
+    var laneStats = {a:{done:0,total:0}, c:{done:0,total:0}, b:{done:0,total:0}, final:{done:0,total:0}};
+    tasks.forEach(function(t){
+      if(t.status === "deferred") return;
+      var k = t.zone === "building" ? "final" : t.zone;
+      if(!laneStats[k]) return;
+      laneStats[k].total++;
+      if(t.status === "done") laneStats[k].done++;
+    });
+
+    var axisCount = Math.min(Math.ceil(totalSpan)+1, 16);
+    var axisStep = Math.max(1, Math.round(totalSpan/axisCount));
+    var axisHtml = "";
+    for(var d=0; d<=totalSpan; d+=axisStep){
+      axisHtml += '<span style="position:absolute;left:'+((d/totalSpan)*100)+'%;transform:translateX(-50%);font-size:10px;color:var(--faint)">'+Math.round(d)+'</span>';
+    }
+
+    var rowsHtml = lanes.map(function(l){
+      var leftPct = (l.startDay/totalSpan)*100;
+      var widthPct = Math.max(((l.endDay-l.startDay)/totalSpan)*100, 2);
+      var st = laneStats[l.key];
+      var pct = st.total ? Math.round((st.done/st.total)*100) : 0;
+      return '<div class="gantt-row"><div class="gantt-label" title="'+l.full+'">'+l.label+'</div>'+
+        '<div class="gantt-track"><div class="gantt-bar" style="direction:ltr;left:'+leftPct+'%;width:'+widthPct+'%;background:color-mix(in srgb, '+l.color+' 26%, transparent)">'+
+          '<div style="position:absolute;inset:0;left:0;width:'+pct+'%;background:'+l.color+'"></div>'+
+          '<div style="position:relative;z-index:1;font-size:10.5px;font-weight:800;color:#fff;line-height:24px;padding:0 6px;direction:rtl">'+pct+'% منجز</div>'+
+        '</div></div></div>';
+    }).join("");
+
+    var todayPct = Math.max(0, Math.min(100, (daysSince/totalSpan)*100));
+    // الصفحة RTL: عمود الأيقونات على اليمين والمسار على اليسار،
+    // فموضع خط "اليوم" من اليسار = (عرض المسار) × النسبة، بدون إضافة عرض العمود
+    var GANTT_OFFSET = "58px";
+    var todayLeft = 'calc((100% - '+GANTT_OFFSET+') * '+(todayPct/100)+')';
+    var todayMarker = '<div class="gantt-today-line" style="left:'+todayLeft+'"></div>'+
+      '<div class="gantt-today-tag" style="left:'+todayLeft+'">اليوم</div>';
+    var legendHtml = '<div class="gantt-legend">'+lanes.map(function(l){ return '<span>'+l.full+'</span>'; }).join("")+'</div>';
+
+    els.ganttChart.innerHTML =
+      '<div class="gantt-outer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+          '<div style="width:50px;flex:0 0 auto"></div>'+
+          '<div style="flex:1;min-width:0;position:relative;height:12px;direction:ltr">'+axisHtml+'</div>'+
+        '</div>'+
+        rowsHtml + todayMarker +
+        legendHtml +
+      '</div>';
+  }
+
+  function renderList(){
+    var filtered = tasks.filter(function(t){
+      // المهام المؤجلة (مسودّات) لا تظهر للزائر إطلاقًا
+      if(reportMode && t.status==="deferred") return false;
+      if(activeFilter==="all") return true;
+      if(activeFilter==="deferred") return t.status==="deferred";
+      if(activeFilter==="zone-a") return t.zone==="a";
+      if(activeFilter==="zone-c") return t.zone==="c";
+      if(activeFilter==="zone-b") return t.zone==="b";
+      return true;
+    });
+    if(filtered.length===0){ els.taskList.innerHTML = '<div class="empty">لا توجد مهام مطابقة حاليًا.</div>'; return; }
+    filtered = filtered.slice().sort(function(a,b){
+      var aw=(a.gate?-2:0)+(a.status==="late"?-1:0), bw=(b.gate?-2:0)+(b.status==="late"?-1:0);
+      return aw-bw;
+    });
+    els.taskList.innerHTML = filtered.map(function(t){
+      if(!reportMode && t.id === editingId) return renderTaskEdit(t);
+      return renderTaskView(t);
+    }).join("");
+    Array.prototype.forEach.call(els.taskList.querySelectorAll(".status-select"), function(sel){
+      sel.addEventListener("change", function(){ updateStatus(sel.getAttribute("data-id"), sel.value); });
+    });
+    if(!reportMode){
+      Array.prototype.forEach.call(els.taskList.querySelectorAll(".edit-btn"), function(btn){
+        btn.addEventListener("click", function(){ editingId = btn.getAttribute("data-id"); deletingId = null; renderList(); });
+      });
+      Array.prototype.forEach.call(els.taskList.querySelectorAll(".del-btn"), function(btn){
+        btn.addEventListener("click", function(){
+          var id = btn.getAttribute("data-id");
+          if(deletingId === id){ deleteTask(id); deletingId = null; }
+          else { deletingId = id; renderList(); }
+        });
+      });
+      var cancelBtn = els.taskList.querySelector(".cancel-btn");
+      if(cancelBtn) cancelBtn.addEventListener("click", function(){ editingId = null; renderList(); });
+      var saveBtn = els.taskList.querySelector(".save-btn");
+      if(saveBtn) saveBtn.addEventListener("click", function(){ saveTaskEdit(saveBtn.getAttribute("data-id")); });
+    }
+  }
+
+  function renderTaskView(t){
+    var pr = PRIORITY[t.priority]||PRIORITY.normal;
+    var tm = TEAMS[t.team]||TEAMS.maint;
+    var zn = ZONES[t.zone]||ZONES.building;
+    var statusOpts = Object.keys(STATUS).map(function(k){
+      return '<option value="'+k+'"'+(k===t.status?' selected':'')+'>'+STATUS[k].icon+' '+STATUS[k].label+'</option>';
+    }).join("");
+    var st = STATUS[t.status]||STATUS.pending;
+    var statusHtml = reportMode
+      ? '<span class="status-badge">'+st.icon+' '+st.label+'</span>'
+      : '<select class="status-select" data-id="'+t.id+'">'+statusOpts+'</select>';
+    var actionsHtml = reportMode ? '' : (
+      '<div class="task-actions">'+
+        '<button class="icon-btn edit-btn" data-id="'+t.id+'" title="تعديل">✏️</button>'+
+        '<button class="icon-btn del-btn'+(deletingId===t.id?' confirming':'')+'" data-id="'+t.id+'" title="حذف">'+(deletingId===t.id?'تأكيد الحذف؟':'🗑️')+'</button>'+
+      '</div>'
+    );
+    return '<div class="task '+zn.cls+(t.gate?' gate':'')+(t.status==="deferred"?' deferred-task':'')+'" data-id="'+t.id+'">'+
+      '<div class="task-top"><div class="task-desc">'+(t.gate?'<span class="lock">🔒</span> ':'')+escapeHtml(t.description)+'</div>'+
+      '<div class="task-top-actions">'+statusHtml+actionsHtml+'</div></div>'+
+      '<div class="task-meta"><span class="pill">'+zn.label+'</span><span class="pill">'+tm.label+'</span>'+
+      '<span class="prio '+pr.cls+'">'+pr.icon+' '+pr.label+'</span><span class="age">أُضيفت '+relTime(t.createdAt)+'</span></div>'+
+      (t.notes?'<div class="notes">'+escapeHtml(t.notes)+'</div>':'')+'</div>';
+  }
+
+  var ZONE_ORDER = ["a","c","b","building"];
+  var TEAM_ORDER = ["maint","cleaning"];
+  var PRIORITY_ORDER = ["urgent","medium","normal"];
+
+  function renderTaskEdit(t){
+    var zoneOpts = ZONE_ORDER.map(function(k){ return '<option value="'+k+'"'+(k===t.zone?' selected':'')+'>'+ZONES[k].label+'</option>'; }).join("");
+    var teamOpts = TEAM_ORDER.map(function(k){ return '<option value="'+k+'"'+(k===t.team?' selected':'')+'>'+TEAMS[k].label+'</option>'; }).join("");
+    var prioOpts = PRIORITY_ORDER.map(function(k){ return '<option value="'+k+'"'+(k===t.priority?' selected':'')+'>'+PRIORITY[k].icon+' '+PRIORITY[k].label+'</option>'; }).join("");
+    return '<div class="task '+((ZONES[t.zone]||ZONES.building).cls)+'" data-id="'+t.id+'">'+
+      '<div class="task-edit">'+
+        '<input type="text" class="edit-desc" value="'+escapeHtml(t.description)+'" placeholder="وصف المهمة">'+
+        '<div class="grid3">'+
+          '<select class="edit-zone">'+zoneOpts+'</select>'+
+          '<select class="edit-team">'+teamOpts+'</select>'+
+          '<select class="edit-prio">'+prioOpts+'</select>'+
+        '</div>'+
+        '<textarea class="edit-notes" placeholder="ملاحظات (اختياري)">'+escapeHtml(t.notes||"")+'</textarea>'+
+        '<div class="edit-actions">'+
+          '<button class="save-btn" data-id="'+t.id+'">💾 حفظ</button>'+
+          '<button class="cancel-btn" data-id="'+t.id+'">إلغاء</button>'+
+        '</div>'+
+      '</div></div>';
+  }
+
+  function saveTaskEdit(id){
+    if(!db) return;
+    var card = els.taskList.querySelector('.task[data-id="'+id+'"]');
+    if(!card) return;
+    var desc = card.querySelector(".edit-desc").value.trim();
+    if(!desc) return;
+    var data = {
+      description: desc,
+      zone: card.querySelector(".edit-zone").value,
+      team: card.querySelector(".edit-team").value,
+      priority: card.querySelector(".edit-prio").value,
+      notes: card.querySelector(".edit-notes").value.trim(),
+      updatedAt: new Date().toISOString()
+    };
+    db.collection("tasks").doc(id).update(data).then(function(){
+      editingId = null; renderList();
+    }).catch(function(e){ console.error(e); handleWriteError(e); });
+  }
+
+  function deleteTask(id){
+    if(!db) return;
+    db.collection("tasks").doc(id).delete().catch(function(e){ console.error(e); handleWriteError(e); });
+  }
+
+  function updateStatus(id, status){
+    if(!db) return;
+    db.collection("tasks").doc(id).update({status:status, updatedAt:new Date().toISOString()}).catch(function(e){ console.error(e); handleWriteError(e); });
+  }
+
+  els.filters.addEventListener("click", function(e){
+    var btn = e.target.closest(".chip"); if(!btn) return;
+    activeFilter = btn.getAttribute("data-f");
+    Array.prototype.forEach.call(els.filters.querySelectorAll(".chip"), function(c){ c.classList.toggle("active", c===btn); });
+    renderList();
+  });
+
+  els.fSubmit.addEventListener("click", function(){
+    var desc = els.fDesc.value.trim();
+    els.fErr.textContent = "";
+    if(!desc){ els.fErr.textContent = "اكتب وصف المهمة أولًا."; return; }
+    if(!db){ els.fErr.textContent = "تعذّر الاتصال بقاعدة البيانات."; return; }
+    els.fSubmit.disabled = true;
+    db.collection("tasks").add({
+      zone: els.fZone.value, team: els.fTeam.value, priority: els.fPriority.value,
+      description: desc, gate: !!els.fGate.checked, notes: els.fNotes.value.trim(),
+      status: "pending", createdAt: new Date().toISOString()
+    }).then(function(){
+      els.fDesc.value=""; els.fNotes.value=""; els.fGate.checked=false; els.fPriority.value="medium";
+    }).catch(function(e){
+      console.error(e);
+      handleWriteError(e);
+      els.fErr.textContent = isPermissionError(e)
+        ? "ليست لديك صلاحية الإضافة — اطلب من مالك اللوحة دعوتك بالإيميل بصلاحية تعديل."
+        : "تعذّرت الإضافة، حاول مرة أخرى.";
+    }).finally(function(){ els.fSubmit.disabled=false; });
+  });
+
+  function boot(){
+    /* بيئة التقرير الثابت: لا حاجة لفحص Claude */
+    renderGates(); renderCountdowns();
+    Promise.resolve([FROZEN_DB, FROZEN_USER]).then(function(r){
+      db = r[0];
+      var user = r[1];
+
+      // ===== تحديد صلاحية الكتابة =====
+      // الافتراضي: لا صلاحية. الكتابة تُمنح فقط عند التأكد منها.
+      var canWrite = true;
+      if(!db || !user){
+        // غير مسجّل دخول، أو لا وصول لقاعدة البيانات → قراءة فقط قطعًا
+        canWrite = false;
+      } else if(typeof user.can === "function"){
+        try { if(user.can("data.write") === false) canWrite = false; } catch(e){}
+      }
+
+      if(!canWrite){
+        lockToReport();
+      } else {
+        if(reportMode) document.body.classList.add("report-mode");
+        els.previewBtn.hidden = false;
+        els.previewBtn.textContent = reportMode ? "↩︎ رجوع لوضع الإدارة" : "👁️ معاينة وضع العرض";
+        els.previewBtn.addEventListener("click", function(){
+          reportMode = !reportMode;
+          document.body.classList.toggle("report-mode", reportMode);
+          els.previewBtn.textContent = reportMode ? "↩︎ رجوع لوضع الإدارة" : "👁️ معاينة وضع العرض";
+          editingId = null; deletingId = null;
+          renderList();
+        });
+      }
+
+      if(!db){
+        // لا وصول للبيانات (زائر غير مسجّل): لا تعرض أصفارًا مضلّلة —
+        // أخفِ كل الأقسام الرقمية ووجّهه لنسخة التقرير.
+        document.body.classList.add("no-data");
+        els.liveLabel.textContent = "عرض فقط";
+        els.taskList.innerHTML = "";
+        renderSummaries();
+        return;
+      }
+
+      var loadTimer = setTimeout(function(){ els.liveLabel.textContent = "جارٍ الاتصال..."; }, 10000);
+
+      db.doc("meta/gates").onSnapshot(function(snap){
+        if(snap.exists){ var d = snap.data(); GATES.forEach(function(g){ gatesState[g.key] = !!d[g.key]; }); renderGates(); }
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/zones").onSnapshot(function(snap){
+        if(snap.exists){
+          var d = snap.data();
+          if(d.a != null) zoneTargets.a = d.a;
+          if(d.c != null) zoneTargets.c = d.c;
+          if(d.b != null) zoneTargets.b = d.b;
+          if(d.final != null) zoneTargets.final = d.final;
+        } else {
+          db.doc("meta/zones").set(Object.assign({}, zoneTargets)).catch(function(){});
+        }
+        renderCountdowns();
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/summaries").onSnapshot(function(snap){
+        if(snap.exists){
+          var d = snap.data();
+          if(d.a != null) zoneSummaries.a = d.a;
+          if(d.c != null) zoneSummaries.c = d.c;
+          if(d.b != null) zoneSummaries.b = d.b;
+        }
+        renderSummaries();
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/incident").onSnapshot(function(snap){
+        if(snap.exists){ incidentStartedAt = snap.data().startedAt; }
+        else { incidentStartedAt = new Date().toISOString(); db.doc("meta/incident").set({startedAt:incidentStartedAt}).catch(function(){}); }
+        renderCountdowns();
+      }, function(e){ console.error(e); });
+
+      db.collection("tasks").orderBy("createdAt","desc").limit(500).onSnapshot(function(snap){
+        clearTimeout(loadTimer);
+        tasks = snap.docs.map(function(d){
+          var data = d.data()||{};
+          return {id:d.id, zone:data.zone||"building", team:data.team||"coord", priority:data.priority||"normal",
+            description:data.description||"", notes:data.notes||"", gate:!!data.gate,
+            status:data.status||"pending", createdAt:data.createdAt||null};
+        });
+        render();
+      }, function(err){ clearTimeout(loadTimer); console.error(err); els.taskList.innerHTML = '<div class="empty">تعذّر تحميل المهام حاليًا.</div>'; });
+    });
+  }
+
+  boot();
+})();
+</script>
