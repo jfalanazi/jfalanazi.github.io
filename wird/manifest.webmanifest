@@ -1,0 +1,17 @@
+{
+  "name": "ورد التدبر",
+  "short_name": "ورد التدبر",
+  "description": "معلّمك الخاص لحفظ القرآن وفهمه: درس يومي جاهز، تدبّر، قراءة تصويرية، استحضار، متشابهات، ومراجعة متباعدة.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf8f3",
+  "theme_color": "#1f6b52",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
