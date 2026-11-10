@@ -174,7 +174,7 @@
   .report-banner .stale-note{display:block; font-size:11.5px; font-weight:700; margin-top:3px}
 
   /* ====== صحة الجدول ====== */
-  .sched{margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); display:grid; gap:8px}
+  .sched{margin-top:10px; display:grid; gap:8px}
   .sched-title{font-size:12.5px; font-weight:800; color:var(--muted)}
   .sched-row{border:1px solid var(--border); border-radius:10px; padding:9px 12px; background:var(--surface); display:grid; gap:5px}
   .sched-row.h-late, .sched-row.h-over{border-color:color-mix(in srgb, var(--critical) 55%, var(--border)); background:color-mix(in srgb, var(--critical) 6%, var(--surface))}
@@ -200,7 +200,12 @@
   .sched-edit input{width:58px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:5px 6px; font-size:12.5px; text-align:center; font-family:inherit}
   .sched-edit button{border:none; background:var(--accent-2); color:#fff; border-radius:6px; padding:6px 11px; font-size:11.5px; cursor:pointer; font-weight:700; font-family:inherit}
   .sched-edit .hint{flex-basis:100%; font-size:10.5px; color:var(--faint)}
-  body.report-mode .sched-edit{display:none}
+  body.report-mode .sched-edit, body.report-mode .sched-wrap{display:none}
+  .sched-wrap summary{cursor:pointer; font-size:11.5px; font-weight:700; color:var(--accent-2); list-style:none}
+  .sched-wrap summary::-webkit-details-marker{display:none}
+  .sched-wrap[open] summary{margin-bottom:6px}
+  .sched-edit .s-clear{background:transparent; color:var(--critical); border:1px solid var(--critical)}
+  .sched:empty{display:none}
   .group-head .hchip{font-size:10.5px; padding:2px 8px}
 
   body.report-mode .form-card,
@@ -391,7 +396,7 @@
     </div>
 
     <div class="panel gantt-panel">
-      <h3>الخط الزمني للمجموعات (أيام من بداية الحادثة) — النسبة = إنجاز المجموعة</h3>
+      <h3>📊 تقدم المجموعات</h3>
       <div id="ganttChart"></div>
       <div class="sched" id="schedHealth"></div>
     </div>
@@ -510,13 +515,9 @@
   var DAY = 24*60*60*1000;
   function groupRange(p){
     var s = schedule[p.id];
-    if(s && isFinite(s.start) && isFinite(s.end)) return {start:+s.start, end:+s.end};
-    // احتياط: من أهداف المناطق القديمة
-    if(p.zone === "a") return {start:0, end:zoneTargets.a};
-    if(p.zone === "c") return {start:0, end:zoneTargets.c};
-    if(p.zone === "b") return {start:0, end:zoneTargets.b};
-    var m = Math.max(zoneTargets.a, zoneTargets.c, zoneTargets.b);
-    return {start:m, end:m + (zoneTargets.final != null ? zoneTargets.final : 2)};
+    // لا موعد إلا إذا حدّده المدير — المتابعة الافتراضية بالحالات فقط
+    if(s && s.end != null && isFinite(s.start) && isFinite(s.end)) return {start:+s.start, end:+s.end};
+    return null;
   }
   function groupColor(p){
     return p.zone==="a"?"var(--zoneA)":p.zone==="c"?"var(--zoneC)":p.zone==="b"?"var(--zoneB)":"var(--phase-final)";
@@ -533,6 +534,7 @@
   // يقارن الوقت المنقضي من مدة المجموعة بنسبة إنجازها
   function groupHealth(p){
     var r = groupRange(p), g = groupProgress(p), now = daysSinceIncident();
+    if(!r) return {k:"none", pct:g.pct, done:g.done, total:g.total, tp:0, range:null};
     var dur = Math.max(r.end - r.start, 0.01);
     var tp = Math.max(0, Math.min(100, Math.round((now - r.start)/dur*100)));
     var h = {pct:g.pct, done:g.done, total:g.total, tp:tp, range:r};
@@ -739,7 +741,7 @@
     var parents = sortedParents();
 
     // مسار لكل مجموعة (مهمة أم) — نفس النسبة المعروضة في بطاقة المجموعة
-    var lanes = parents.map(function(p){
+    var lanes = parents.filter(function(p){ return !!groupRange(p); }).map(function(p){
       var r = groupRange(p), g = groupProgress(p);
       return {id:p.id, label:groupIcon(p), full:p.description, startDay:r.start, endDay:r.end,
               color:groupColor(p), pct:g.pct};
@@ -792,7 +794,8 @@
           '<div style="flex:1;min-width:0;position:relative;height:12px;direction:ltr">'+axisHtml+'</div>'+
         '</div>'+
         rowsHtml + todayMarker +
-      '</div>' + legendHtml) : '<div class="empty">لا توجد مجموعات بعد.</div>';
+      '</div>' + legendHtml) : '';
+    els.ganttChart.hidden = !lanes.length;
 
     renderHealth(parents);
   }
@@ -804,30 +807,47 @@
     var ae = document.activeElement;
     if(ae && ae.tagName === "INPUT" && box.contains(ae)) return;
     if(!parents.length){ box.innerHTML = ""; return; }
-    var html = '<div class="sched-title">⏱️ صحة الجدول — الوقت المنقضي من مدة كل مجموعة مقابل إنجازها</div>'+
-      '<div class="sched-legend">الشريط الملوّن = الإنجاز · الخط الأسود = أين يُفترض أن نكون الآن</div>';
+    var anyDated = parents.some(function(p){ return !!groupRange(p); });
+    var html = anyDated ? '<div class="sched-legend">الخط الأسود على الشريط = أين يُفترض أن نكون الآن (للمجموعات ذات الموعد فقط)</div>' : '';
     parents.forEach(function(p){
-      var h = groupHealth(p);
-      var timeTxt = h.k === "wait" ? 'تبدأ: <b>'+escapeHtml(fmtDue(h.range.start))+'</b>'
-                                  : 'الوقت المنقضي <b class="num">'+h.tp+'%</b>';
+      var h = groupHealth(p), dated = h.k !== "none";
+      var chip = dated ? '<span class="hchip h-'+h.k+'">'+h.icon+' '+h.label+'</span>' : '';
+      var fill = dated ? '<i class="fill h-'+h.k+'" style="width:'+h.pct+'%"></i>'
+                       : '<i class="fill" style="width:'+h.pct+'%;background:'+groupColor(p)+'"></i>';
+      var mark = (dated && h.k !== "wait") ? '<i class="mark" style="right:'+h.tp+'%"></i>' : '';
+      var meta = '<span class="ln">الإنجاز <b class="num">'+h.pct+'%</b> <span class="nw">('+h.done+' من '+h.total+')</span>'+
+        (dated && h.k !== "wait" ? ' · الوقت المنقضي <b class="num">'+h.tp+'%</b>' : '')+'</span>'+
+        (dated ? '<span class="ln">'+(h.k === "wait" ? 'تبدأ: <b>'+escapeHtml(fmtDue(h.range.start))+'</b> · ' : '')+
+                 'الموعد: <b>'+escapeHtml(fmtDue(h.range.end))+'</b></span>' : '');
       html += '<div class="sched-row h-'+h.k+'">'+
-        '<div class="sched-top"><div class="sched-name">'+escapeHtml(p.description)+'</div>'+
-          '<span class="hchip h-'+h.k+'">'+h.icon+' '+h.label+'</span></div>'+
-        '<div class="sched-bar" title="الشريط = الإنجاز، والخط = أين يُفترض أن نكون الآن">'+
-          '<i class="fill h-'+h.k+'" style="width:'+h.pct+'%"></i>'+
-          (h.k === "wait" ? '' : '<i class="mark" style="right:'+h.tp+'%"></i>')+'</div>'+
-        '<div class="sched-meta"><span class="ln">'+timeTxt+' · الإنجاز <b class="num">'+h.pct+'%</b> <span class="nw">('+h.done+' من '+h.total+')</span></span>'+
-          '<span class="ln">الموعد: <b>'+escapeHtml(fmtDue(h.range.end))+'</b></span></div>'+
-        '<div class="sched-edit">من اليوم <input type="number" inputmode="decimal" step="0.5" min="0" class="s-start" data-id="'+p.id+'" value="'+h.range.start+'">'+
-          ' إلى اليوم <input type="number" inputmode="decimal" step="0.5" min="0" class="s-end" data-id="'+p.id+'" value="'+h.range.end+'">'+
+        '<div class="sched-top"><div class="sched-name">'+escapeHtml(p.description)+'</div>'+chip+'</div>'+
+        '<div class="sched-bar">'+fill+mark+'</div>'+
+        '<div class="sched-meta">'+meta+'</div>'+
+        '<details class="sched-wrap"'+(dated?' open':'')+'><summary>⏱️ '+(dated?'الموعد':'تحديد موعد (اختياري)')+'</summary>'+
+        '<div class="sched-edit">من اليوم <input type="number" inputmode="decimal" step="0.5" min="0" class="s-start" data-id="'+p.id+'" value="'+(dated?h.range.start:0)+'">'+
+          ' إلى اليوم <input type="number" inputmode="decimal" step="0.5" min="0" class="s-end" data-id="'+p.id+'" value="'+(dated?h.range.end:'')+'" placeholder="—">'+
           '<button class="s-save" data-id="'+p.id+'">حفظ الموعد</button>'+
-          '<span class="hint">الأيام تُحسب من بداية الحادثة — يمكن استخدام نصف يوم (مثل 2.5)</span></div>'+
+          (dated ? '<button class="s-clear" data-id="'+p.id+'">إزالة الموعد</button>' : '')+
+          '<span class="hint">الأيام من بداية الحادثة (يقبل نصف يوم مثل 2.5). بدون موعد تُتابع المجموعة بالحالات فقط.</span></div>'+
+        '</details>'+
       '</div>';
     });
     box.innerHTML = html;
     Array.prototype.forEach.call(box.querySelectorAll(".s-save"), function(btn){
       btn.addEventListener("click", function(){ saveSchedule(btn.getAttribute("data-id"), btn); });
     });
+    Array.prototype.forEach.call(box.querySelectorAll(".s-clear"), function(btn){
+      btn.addEventListener("click", function(){ clearSchedule(btn.getAttribute("data-id"), btn); });
+    });
+  }
+
+  function clearSchedule(id, btn){
+    if(!db){ flashBtn(btn, "✗ لا يوجد اتصال", false); return; }
+    var next = Object.assign({}, schedule); delete next[id];
+    flashBtn(btn, "جارٍ الحذف…", null);
+    db.doc("meta/schedule").set(next)
+      .then(function(){ schedule = next; renderGantt(); renderList(); })
+      .catch(function(e){ handleWriteError(e); flashBtn(btn, isPermissionError(e) ? "✗ لا تملك صلاحية" : "✗ لم يُحذف", false); });
   }
 
   function saveSchedule(id, btn){
@@ -892,7 +912,7 @@
       var zn = ZONES[p.zone] || ZONES.building;
       html += '<div class="group '+zn.cls+'">'+
         '<div class="group-head">'+
-          '<div class="group-title">'+escapeHtml(p.description)+' '+(function(){ var gh=groupHealth(p); return '<span class="hchip h-'+gh.k+'">'+gh.icon+' '+gh.label+'</span>'; })()+'</div>'+
+          '<div class="group-title">'+escapeHtml(p.description)+' '+(function(){ var gh=groupHealth(p); return gh.k==="none" ? '' : '<span class="hchip h-'+gh.k+'">'+gh.icon+' '+gh.label+'</span>'; })()+'</div>'+
           '<div class="group-meta"><span class="group-count">'+done+' / '+live.length+'</span>'+
             '<div class="group-bar"><i style="width:'+pct+'%"></i></div>'+
             '<span class="group-pct">'+pct+'%</span></div>'+
