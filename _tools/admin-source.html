@@ -1059,7 +1059,7 @@
     try {
       if(typeof FROZEN_DATA === "undefined" || !FROZEN_DATA.generatedAt) return;
       var hrs = (Date.now() - new Date(FROZEN_DATA.generatedAt).getTime()) / 3600000;
-      if(hrs <= 6) return;
+      if(hrs <= 12) return;   // أطول فجوة بين التحديثات المجدولة ~11 ساعة (ليلًا)
       var b = document.querySelector(".report-banner"); if(!b) return;
       b.classList.add("stale");
       var n = document.createElement("span"); n.className = "stale-note";
