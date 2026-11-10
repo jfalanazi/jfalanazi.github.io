@@ -1,0 +1,1174 @@
+<title>لوحة الإدارة — حريق مبنى 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* تخطيط: بوابات مستوى المبنى بالأعلى، ثم بطاقتا منطقة (أ: الحريق المباشر، ب: امتداد الدخان) كل وحدة بعدها التنازلي وبوابتها، ثم إحصائيات ومهام مفلترة بالمنطقة والفريق */
+  :root{
+    --bg:#f9f9f7; --surface:#fcfcfb; --surface-2:#f2f1ee;
+    --text:#0b0b0b; --muted:#52514e; --faint:#898781;
+    --border:rgba(11,11,11,.10); --grid:#e1e0d9;
+    --accent:#7a1f1f; --accent-2:#2a78d6;
+    --good:#0ca30c; --warning:#c98500; --critical:#d03b3b; --pending:#898781;
+    --zoneA:#c62828; --zoneB:#0d8fa0; --zoneC:#6d4ad6; --phase-final:#a07a08;
+    --font-ui: "IBM Plex Sans Arabic","Segoe UI",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+      --text:#f0efec; --muted:#c3c2b7; --faint:#898781;
+      --border:rgba(255,255,255,.12); --grid:#2c2c2a;
+      --accent:#a33a3a; --accent-2:#3987e5;
+      --good:#0ca30c; --warning:#fab219; --critical:#e66767; --pending:#9b9890;
+      --zoneA:#ef5350; --zoneB:#13a4b8; --zoneC:#8f7be6; --phase-final:#ad8720;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+    --text:#f0efec; --muted:#c3c2b7; --faint:#898781;
+    --border:rgba(255,255,255,.12); --grid:#2c2c2a;
+    --accent:#a33a3a; --accent-2:#3987e5;
+    --good:#0ca30c; --warning:#fab219; --critical:#e66767; --pending:#9b9890;
+    --zoneA:#ef5350; --zoneB:#13a4b8; --zoneC:#8f7be6; --phase-final:#ad8720;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    direction:rtl; font-family:var(--font-ui); background:var(--bg); color:var(--text);
+    padding-left: max(16px, env(safe-area-inset-left,0px));
+    padding-right: max(16px, env(safe-area-inset-right,0px));
+  }
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--accent);z-index:10}
+  h1,h2,h3{text-wrap:balance; margin:0}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:960px; margin:0 auto; padding-top:calc(14px + env(safe-area-inset-top,0px)); padding-bottom:40px}
+
+  .header{background:var(--accent); color:#fff; border-radius:16px; padding:18px 20px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:12px}
+  .header h1{font-size:19px; font-weight:800}
+  .header .sub{font-size:12.5px; opacity:.85; margin-top:4px}
+  .live{display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.16); border-radius:999px; padding:6px 12px; font-size:12px; white-space:nowrap}
+  .head-tools{display:flex; flex-direction:column; align-items:flex-end; gap:7px}
+  .preview-btn{border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff; border-radius:999px; padding:6px 12px; font-size:11.5px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap}
+  .live .dot{width:7px;height:7px;border-radius:50%;background:#5be35b;animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(91,227,91,.55)}70%{box-shadow:0 0 0 7px rgba(91,227,91,0)}100%{box-shadow:0 0 0 0 rgba(91,227,91,0)}}
+
+  .section-label{font-size:12px; font-weight:800; color:var(--muted); margin:18px 2px 8px; text-transform:none}
+
+  .building-gates{border-radius:14px; padding:14px 18px; border:1.5px solid; transition:background .3s,border-color .3s}
+  .building-gates.not-ready{background:color-mix(in srgb, var(--critical) 9%, var(--surface)); border-color:var(--critical)}
+  .building-gates.ready{background:color-mix(in srgb, var(--good) 11%, var(--surface)); border-color:var(--good)}
+  .gates-title{display:flex; align-items:center; gap:8px; font-weight:800; font-size:13.5px; margin-bottom:8px}
+  .gates-title .badge{font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:999px; color:#fff; direction:ltr; unicode-bidi:isolate}
+  .building-gates.not-ready .badge{background:var(--critical)}
+  .building-gates.ready .badge{background:var(--good)}
+  .gate-item{display:flex; align-items:flex-start; gap:9px; padding:6px 0; border-top:1px dashed var(--border); font-size:12.5px}
+  .gate-item:first-of-type{border-top:none}
+  .gate-item input{margin-top:2px; width:17px; height:17px; accent-color:var(--good); flex:0 0 auto}
+  .gate-item label{font-weight:600; cursor:pointer}
+
+  .zones{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  @media (max-width:900px){.zones{grid-template-columns:1fr 1fr}}
+  @media (max-width:560px){.zones{grid-template-columns:1fr}}
+  .zone-card{background:var(--surface); border:1px solid var(--border); border-top:4px solid; border-radius:12px; padding:14px 16px}
+  .zone-card.a{border-top-color:var(--zoneA)}
+  .zone-card.b{border-top-color:var(--zoneB)}
+  .zone-card.c{border-top-color:var(--zoneC)}
+  .zone-head{display:flex; justify-content:space-between; align-items:flex-start; gap:8px}
+  .zone-head h3{font-size:14.5px; font-weight:800}
+  .zone-head .desc{font-size:11.5px; color:var(--muted); margin-top:3px}
+  .zone-countdown{font-size:20px; font-weight:800; margin-top:10px}
+  .zone-target{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:11.5px; color:var(--muted)}
+  .zone-target input{width:52px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 6px; font-size:12px; text-align:center}
+  .zone-target button{border:none; background:var(--accent-2); color:#fff; border-radius:6px; padding:4px 9px; font-size:11px; cursor:pointer; font-weight:700}
+  .zone-owner{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:11.5px; color:var(--muted)}
+  .zone-owner input{flex:1; min-width:0; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 8px; font-size:12px}
+  .zone-owner button{border:none; background:var(--accent-2); color:#fff; border-radius:6px; padding:4px 9px; font-size:11px; cursor:pointer; font-weight:700; flex:0 0 auto}
+  .zone-summary{margin-top:8px}
+  .zone-summary label{display:block; font-size:11px; color:var(--muted); margin-bottom:3px}
+  .zone-summary textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:7px 9px; font-size:12px; font-family:inherit; min-height:44px; resize:vertical}
+  .zone-summary button{margin-top:4px; border:none; background:var(--accent-2); color:#fff; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:700}
+  .zone-gates{margin-top:10px}
+
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+  @media (max-width:640px){
+    .tiles{grid-template-columns:repeat(2,1fr)}
+    /* بلاطة فردية في آخر صف تمتد بعرض الصف بدل أن تترك فراغًا */
+    .tiles > .tile:last-child:nth-child(odd){grid-column:1 / -1}
+    body.report-mode .tiles > .tile:last-child{grid-column:1 / -1}
+  }
+  .tile{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px}
+  .tile .lbl{font-size:11.5px; color:var(--muted)}
+  .tile .val{font-size:24px; font-weight:800; margin-top:4px}
+  .tile.good .val{color:var(--good)} .tile.crit .val{color:var(--critical)}
+
+  .charts{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  @media (max-width:640px){.charts{grid-template-columns:1fr}}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px}
+  .panel h3{font-size:12.5px; color:var(--muted); font-weight:700; margin-bottom:10px}
+
+  /* لوحات قابلة للطي — مغلقة افتراضيًا */
+  .panel.foldable{padding:0}
+  .foldable > summary{
+    list-style:none; cursor:pointer; user-select:none;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    font-size:12.5px; color:var(--muted); font-weight:700;
+    padding:13px 16px; border-radius:12px;
+  }
+  .foldable > summary::-webkit-details-marker{display:none}
+  .foldable > summary::after{
+    content:""; flex:0 0 auto; width:8px; height:8px;
+    border-right:2px solid var(--muted); border-bottom:2px solid var(--muted);
+    transform:rotate(45deg) translate(-2px,-2px); transition:transform .18s ease;
+  }
+  .foldable[open] > summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
+  .foldable[open] > summary{color:var(--text); padding-bottom:4px}
+  .foldable > summary:hover{color:var(--text)}
+  .fold-body{padding:0 16px 14px}
+  @media print{ .foldable > summary::after{display:none} .fold-body{display:block !important} }
+  .bar-row{display:flex; align-items:center; gap:8px; margin:7px 0; font-size:12px}
+  .bar-row .lbl{width:118px; flex:0 0 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .bar-track{flex:1; height:9px; background:var(--grid); border-radius:5px; overflow:hidden; min-width:0}
+  .bar-fill{height:100%; border-radius:5px; transition:width .4s ease}
+  .bar-val{width:20px; flex:0 0 auto; text-align:left; font-weight:700}
+
+  .form-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px}
+  .form-card h3{font-size:14px; margin-bottom:12px}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
+  @media (max-width:560px){.grid3{grid-template-columns:1fr}}
+  label.field-label{display:block; font-size:11.5px; color:var(--muted); margin-bottom:4px}
+  select, input[type=text], textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 10px; font-size:13.5px; font-family:inherit}
+  textarea{resize:vertical; min-height:40px}
+  .field{margin-bottom:10px}
+  .check-field{display:flex; align-items:center; gap:7px; font-size:13px; margin-bottom:10px}
+  .check-field input{width:17px;height:17px}
+  .btn{appearance:none; border:none; border-radius:9px; padding:10px 18px; font-size:13.5px; font-weight:700; background:var(--accent-2); color:#fff; cursor:pointer}
+  .btn:disabled{opacity:.5}
+  .err{color:var(--critical); font-size:12px; margin-top:6px; min-height:14px}
+
+  .filters{display:flex; gap:8px; flex-wrap:wrap}
+  .chip{border:1.5px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:10px; padding:10px 15px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; font-family:inherit; box-shadow:0 1px 2px rgba(0,0,0,.07); transition:background .15s, border-color .15s}
+  .chip:hover{border-color:var(--accent)}
+  .chip.active{background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:0 2px 7px color-mix(in srgb, var(--accent) 40%, transparent)}
+
+  .task-list{display:flex; flex-direction:column; gap:8px}
+  .task{background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:12px 14px; display:flex; flex-direction:column; gap:7px; border-right:4px solid var(--grid)}
+  .task.zone-a{border-right-color:var(--zoneA)}
+  .task.zone-b{border-right-color:var(--zoneB)}
+  .task.zone-c{border-right-color:var(--zoneC)}
+  .task.gate{outline:1.5px solid var(--critical)}
+  .task.deferred-task{border-style:dashed; opacity:.72}
+  .task-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+  .task-desc{font-size:14px; font-weight:600; min-width:0; word-wrap:break-word}
+  .task-meta{display:flex; flex-wrap:wrap; gap:6px; font-size:11.5px; color:var(--muted); align-items:center}
+  .pill{border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700; background:var(--surface-2); color:var(--text)}
+  .prio{font-weight:700}
+  .prio.urgent{color:var(--critical)} .prio.medium{color:var(--warning)} .prio.normal{color:var(--faint)}
+  .lock{color:var(--critical); font-weight:800}
+  .status-select{font-size:12px; font-weight:700; border-radius:999px; padding:5px 10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); cursor:pointer}
+  .status-badge{font-size:12px; font-weight:700; border-radius:999px; padding:5px 10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); white-space:nowrap}
+
+  /* ====== report mode (read-only view: ?report=1) ====== */
+  .report-banner{display:none; background:var(--accent-2); color:#fff; text-align:center; font-size:12.5px; font-weight:700; padding:8px 12px; border-radius:10px; margin-bottom:12px}
+  body.report-mode .report-banner{display:block}
+  .report-banner.stale{background:var(--warning); color:#1a1200}
+  .report-banner .stale-note{display:block; font-size:11.5px; font-weight:700; margin-top:3px}
+
+  /* ====== صحة الجدول ====== */
+  .sched{margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); display:grid; gap:8px}
+  .sched-title{font-size:12.5px; font-weight:800; color:var(--muted)}
+  .sched-row{border:1px solid var(--border); border-radius:10px; padding:9px 12px; background:var(--surface); display:grid; gap:5px}
+  .sched-row.h-late, .sched-row.h-over{border-color:color-mix(in srgb, var(--critical) 55%, var(--border)); background:color-mix(in srgb, var(--critical) 6%, var(--surface))}
+  .sched-row.h-risk{border-color:color-mix(in srgb, var(--warning) 55%, var(--border)); background:color-mix(in srgb, var(--warning) 6%, var(--surface))}
+  .sched-top{display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap}
+  .sched-name{font-size:13px; font-weight:800}
+  .hchip{font-size:11.5px; font-weight:800; border-radius:999px; padding:3px 10px; white-space:nowrap; border:1px solid var(--border); background:var(--surface-2); color:var(--text)}
+  .hchip.h-ok,.hchip.h-done{border-color:color-mix(in srgb, var(--good) 50%, var(--border))}
+  .hchip.h-risk{border-color:var(--warning)}
+  .hchip.h-late,.hchip.h-over{border-color:var(--critical); color:var(--critical)}
+  .sched-meta{font-size:11.5px; color:var(--muted); line-height:1.7}
+  .sched-meta b{color:var(--text); font-weight:800}
+  .sched-meta .ln{display:block}
+  .sched-meta .nw{white-space:nowrap}
+  .sched-bar{position:relative; height:8px; border-radius:999px; background:var(--grid); margin:2px 0}
+  .sched-bar .fill{position:absolute; top:0; bottom:0; right:0; border-radius:999px; background:var(--good)}
+  .sched-bar .fill.h-risk{background:var(--warning)}
+  .sched-bar .fill.h-late,.sched-bar .fill.h-over{background:var(--critical)}
+  .sched-bar .fill.h-wait{background:var(--pending)}
+  .sched-bar .mark{position:absolute; top:-4px; bottom:-4px; width:2.5px; margin-right:-1px; border-radius:2px; background:var(--text)}
+  .sched-legend{font-size:10.5px; color:var(--faint)}
+  .sched-edit{display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:11.5px; color:var(--muted)}
+  .sched-edit input{width:58px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:5px 6px; font-size:12.5px; text-align:center; font-family:inherit}
+  .sched-edit button{border:none; background:var(--accent-2); color:#fff; border-radius:6px; padding:6px 11px; font-size:11.5px; cursor:pointer; font-weight:700; font-family:inherit}
+  .sched-edit .hint{flex-basis:100%; font-size:10.5px; color:var(--faint)}
+  body.report-mode .sched-edit{display:none}
+  .group-head .hchip{font-size:10.5px; padding:2px 8px}
+
+  body.report-mode .form-card,
+  body.report-mode .zone-target button,
+  body.report-mode .zone-owner button,
+  body.report-mode .zone-summary button{display:none}
+  body.report-mode .zone-target input,
+  body.report-mode .zone-owner input,
+  body.report-mode .zone-summary textarea{
+    pointer-events:none; background:transparent; border-color:transparent; padding:2px 0; color:var(--text); resize:none; min-height:0;
+  }
+  body.report-mode .zone-owner input::placeholder,
+  body.report-mode .zone-summary textarea::placeholder{color:var(--muted)}
+  body.report-mode .gate-item input[type="checkbox"]{pointer-events:none}
+  body.report-mode .gate-item label{cursor:default}
+  body.report-mode .preview-btn{border-color:#fff}
+  /* الزائر لا يرى: قائمة التحقق (البوابات) ولا فلتر المهام المؤجلة */
+  body.report-mode .zone-gates,
+  body.report-mode .gate-tile,
+  body.report-mode .chip[data-f="deferred"]{display:none}
+  /* لا بيانات متاحة: لا تعرض أرقامًا صفرية مضلّلة */
+  body.no-data .tiles,
+  body.no-data .charts,
+  body.no-data .panel,
+  body.no-data .filters,
+  body.no-data .task-list,
+  body.no-data .zone-summary{display:none}
+  body.no-data .no-data-note{display:block}
+  .no-data-note{display:none; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 16px; text-align:center; font-size:13px; color:var(--muted); line-height:1.9}
+  .no-data-note a{display:inline-block; margin-top:10px; background:var(--accent-2); color:#fff; text-decoration:none; border-radius:9px; padding:9px 18px; font-weight:800; font-size:13px}
+  @media print{ .zone-gates, .gate-tile, .chip[data-f="deferred"]{display:none !important} }
+
+  /* ====== وضع الطباعة / تصدير PDF — تقرير نظيف بدون أي أدوات تحكم ====== */
+  @media print{
+    :root, :root:not([data-theme="light"]), :root[data-theme="dark"]{
+      color-scheme: light;
+      --bg:#fff; --surface:#fff; --surface-2:#f4f4f2;
+      --text:#111; --muted:#444; --faint:#777;
+      --border:rgba(0,0,0,.22); --grid:#e3e2db;
+    }
+    body{background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:0}
+    .wrap{max-width:none; padding-top:0; padding-bottom:0}
+    body::before{display:none}
+    /* كل ما هو أداة تحكم يختفي من الطباعة */
+    .form-card, .filters, .preview-btn, .report-banner,
+    .zone-summary button, .zone-target button, .zone-owner button,
+    .task-actions, .icon-btn, .task-edit .edit-actions{display:none !important}
+    /* الحقول تطبع كنص عادي */
+    .zone-summary textarea, .zone-target input, .zone-owner input{
+      border:none !important; background:transparent !important; padding:0 !important;
+      resize:none !important; min-height:0 !important; color:var(--text) !important; overflow:visible !important;
+    }
+    .status-select{appearance:none; -webkit-appearance:none; border:none !important; background:transparent !important; padding:0 !important; font-weight:800}
+    /* لا تقطع البطاقات بين الصفحات */
+    .zone-card, .task, .panel, .tile{break-inside:avoid; page-break-inside:avoid}
+    .header{break-after:avoid}
+    .task{box-shadow:none}
+  }
+  .notes{font-size:12.5px; color:var(--muted); border-top:1px dashed var(--border); padding-top:7px}
+  /* ====== مجموعات: مهمة أم وتحتها فروع ====== */
+  .group{border:1px solid var(--border); border-radius:12px; background:var(--surface); margin-bottom:12px; overflow:hidden}
+  .group.zone-a{border-right:4px solid var(--zoneA)}
+  .group.zone-c{border-right:4px solid var(--zoneC)}
+  .group.zone-b{border-right:4px solid var(--zoneB)}
+  .group-head{padding:12px 14px; background:var(--surface-2); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .group-title{font-size:14px; font-weight:800; color:var(--text); flex:1 1 180px; line-height:1.5}
+  .group-meta{display:flex; align-items:center; gap:8px; flex:0 0 auto}
+  .group-count{font-size:11.5px; font-weight:800; color:var(--muted); direction:ltr; unicode-bidi:isolate; white-space:nowrap}
+  .group-bar{width:70px; height:7px; border-radius:999px; background:var(--grid); overflow:hidden; direction:ltr}
+  .group-bar i{display:block; height:100%; background:var(--good); border-radius:999px}
+  .group-pct{font-size:12px; font-weight:800; color:var(--text); min-width:34px; text-align:left; direction:ltr; unicode-bidi:isolate}
+  .group-kids{padding:10px 10px 2px}
+  .group-kids .task{margin-bottom:8px}
+  @media (max-width:760px){ .group-kids{padding:8px 8px 1px} .group-title{font-size:13.5px} }
+
+  .task-top-actions{display:flex; align-items:center; gap:6px; flex:0 0 auto}
+  .task-actions{display:flex; align-items:center; gap:6px; flex:0 0 auto}
+  .icon-btn{border:1px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:8px; width:34px; height:34px; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0}
+  .icon-btn.del-btn.confirming{background:var(--critical); border-color:var(--critical); color:#fff; width:auto; padding:0 9px; font-size:11px; font-weight:700}
+  body.report-mode .task-actions{display:none}
+  .task-edit{display:flex; flex-direction:column; gap:8px; width:100%}
+  .task-edit .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
+  @media (max-width:560px){ .task-edit .grid3{grid-template-columns:1fr} }
+  .task-edit select, .task-edit input[type="text"], .task-edit textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 9px; font-size:12.5px; font-family:inherit}
+  .task-edit textarea{min-height:44px; resize:vertical}
+  .task-edit .edit-actions{display:flex; gap:8px}
+  .task-edit .edit-actions button{border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer}
+  .task-edit .save-btn{background:var(--accent-2); color:#fff}
+  .task-edit .cancel-btn{background:var(--surface-2); color:var(--text); border:1px solid var(--border)!important}
+  .age{font-size:11px; color:var(--faint)}
+  .empty{text-align:center; padding:36px 10px; color:var(--muted); font-size:13px}
+  .skeleton{background:var(--surface); border:1px solid var(--border); border-radius:11px; height:60px; opacity:.5}
+  .foot-note{font-size:11.5px; color:var(--faint); text-align:center; margin-top:22px}
+
+  .stack{display:flex; flex-direction:column; gap:14px; margin-top:14px}
+  .sec-label{font-size:13px; font-weight:800; color:var(--muted); margin-bottom:-6px; padding-right:2px; letter-spacing:.2px}
+  body.no-data .sec-label{display:none}
+
+  /* ====== ترتيب الجوال: الأرقام أولًا، ثم الزمن، ثم التفاصيل ====== */
+  @media (max-width:760px){
+    .stack > .no-data-note{order:1}
+    .stack > .sec-tiles     {order:2}
+    .stack > .tiles         {order:3}
+    .stack > .gantt-panel   {order:4}
+    .stack > .sec-zones     {order:5}
+    .stack > .zones         {order:6}
+    .stack > .charts        {order:7}
+    .stack > .form-card     {order:8}
+    .stack > .sec-tasks     {order:9}
+    .stack > .filters       {order:10}
+    .stack > .task-list     {order:11}
+
+    /* إحكام المسافات ليظهر أكثر في الشاشة الواحدة */
+    .stack{gap:12px}
+    .wrap{padding:14px 14px 28px}
+    .zone-card{padding:13px}
+    .zone-card .desc{font-size:12px; line-height:1.65}
+    .zone-head h3{font-size:14.5px}
+    .tile{padding:12px 13px}
+    .tile .val{font-size:26px}
+    .panel{padding:13px}
+    .panel h3{font-size:12.5px; line-height:1.6}
+    .task{padding:12px}
+  }
+
+  .gantt-outer{position:relative}
+  .gantt-row{display:flex; align-items:center; gap:8px; margin:9px 0}
+  .gantt-label{width:50px; flex:0 0 auto; font-size:16px; font-weight:700; text-align:center; line-height:1}
+  .gantt-track{position:relative; flex:1; min-width:0; height:26px; background:var(--grid); border-radius:6px; overflow:visible}
+  .gantt-bar{position:absolute; top:0; bottom:0; border-radius:6px; overflow:hidden}
+  .gantt-today-line{position:absolute; top:20px; bottom:-6px; width:2px; background:var(--critical); z-index:2}
+  .gantt-today-tag{position:absolute; top:-3px; font-size:10px; font-weight:800; color:#fff; background:var(--critical); border-radius:5px; padding:1px 6px; white-space:nowrap; transform:translateX(-50%); z-index:3}
+  .gantt-legend{display:flex; flex-wrap:wrap; gap:8px 14px; font-size:11px; color:var(--muted); margin-top:10px; padding-top:10px; border-top:1px dashed var(--border)}
+  .gantt-legend span{white-space:nowrap}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap">
+
+<div class="wrap">
+  <div class="report-banner">📄 نسخة تقرير — للقراءة فقط (تحدّث تلقائيًا، بدون تعديل)</div>
+  <div class="header">
+    <div>
+      <h1>🔧 لوحة الإدارة — معالجة آثار حريق مبنى 2</h1>
+      <div class="sub">منطقتان منفصلتان: منطقة الحريق 🔥 وبقية المبنى المتأثرة بالدخان 🌫️</div>
+    </div>
+    <div class="head-tools">
+      <div class="live"><span class="dot"></span><span id="liveLabel">—</span></div>
+      <button class="preview-btn" id="previewBtn" hidden>👁️ معاينة وضع العرض</button>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="sec-label sec-zones">🗂️ حالة المسارات الثلاثة</div>
+    <div class="zones">
+      <div class="zone-card a">
+        <div class="zone-head"><h3>🅰️ منطقة الحريق 🔥</h3></div>
+        <div class="desc">الضرر الإنشائي/الكهربائي الفعلي — عزل المنطقة كهربائيًا بالكامل عن باقي المبنى، مع مراقبة مستمرة على مدار الساعة لحين التأكد من سلامتها بالكامل</div>
+        <div class="zone-summary"><label>📝 ملخص المرحلة والمهام — وش صار وأي مهام شغالة الآن</label><textarea id="zoneASummary" placeholder="مثال: تم فحص اللوحة، جاري اختبار مقاومة العزل. المهام الحالية: إعادة تمديدات الكهرباء، فحص السلامة الإنشائية..."></textarea><button id="zoneASummarySave">حفظ الملخص</button></div>
+        <div class="zone-gates" id="zoneAGates"></div>
+      </div>
+      <div class="zone-card c">
+        <div class="zone-head"><h3>⚙️ أنظمة المبنى التشغيلية</h3></div>
+        <div class="desc">تكييف/تسخين وري وخدمات الموقع المتوقفة بسبب عزل منطقة الحريق — مسار موازٍ يبدأ اليوم</div>
+        <div class="zone-summary"><label>📝 ملخص المرحلة والمهام — وش صار وأي مهام شغالة الآن</label><textarea id="zoneCSummary" placeholder="مثال: تم فحص اللوحة، جاري اختبار مقاومة العزل. المهام الحالية: إعادة تشغيل التكييف، فحص المولدات..."></textarea><button id="zoneCSummarySave">حفظ الملخص</button></div>
+        <div class="zone-gates" id="zoneCGates"></div>
+      </div>
+      <div class="zone-card b">
+        <div class="zone-head"><h3>🅱️ بقية المبنى 🌫️ (المتأثر من الدخان)</h3></div>
+        <div class="desc">آثار دخان (روائح وبقايا سوداء على الأسطح) عبر فتحات التكييف — بدون ضرر إنشائي، ترجع تدريجيًا حسب اكتمال بوابتها</div>
+        <div class="zone-summary"><label>📝 ملخص المرحلة والمهام — وش صار وأي مهام شغالة الآن</label><textarea id="zoneBSummary" placeholder="مثال: بدأ فريق التنظيف بالدور الثاني. المهام الحالية: تنظيف الدكت، إزالة آثار الدخان..."></textarea><button id="zoneBSummarySave">حفظ الملخص</button></div>
+        <div class="zone-gates" id="zoneBGates"></div>
+      </div>
+    </div>
+
+    <div class="no-data-note">
+      هذا رابط لوحة الإدارة، ولا تظهر بياناته إلا لمن يملك صلاحية عليه.<br>
+      للاطّلاع على حالة المشروع، استخدم رابط التقرير:
+      <a href="https://jfalanazi.github.io/b2-7f3a9c2e/" target="_blank" rel="noopener">📄 فتح التقرير</a>
+    </div>
+
+    <div class="sec-label sec-tiles">📊 المؤشرات</div>
+    <div class="tiles">
+      <div class="tile"><div class="lbl">📋 إجمالي المهام</div><div class="val num" id="tTotal">0</div></div>
+      <div class="tile good"><div class="lbl">✅ منجز</div><div class="val num" id="tDone">0</div></div>
+      <div class="tile crit gate-tile"><div class="lbl">🔒 بوابات متبقية (الكل)</div><div class="val num" id="tGateLeft">0</div></div>
+      <div class="tile"><div class="lbl">📈 نسبة الإنجاز</div><div class="val num" id="tPct">0%</div></div>
+    </div>
+
+    <div class="panel gantt-panel">
+      <h3>الخط الزمني للمجموعات (أيام من بداية الحادثة) — النسبة = إنجاز المجموعة</h3>
+      <div id="ganttChart"></div>
+      <div class="sched" id="schedHealth"></div>
+    </div>
+
+    <div class="charts">
+      <details class="panel foldable">
+        <summary>توزيع المهام حسب المنطقة</summary>
+        <div class="fold-body"><div id="chartZone"></div></div>
+      </details>
+      <details class="panel foldable">
+        <summary>توزيع الحالات</summary>
+        <div class="fold-body"><div id="chartStatus"></div></div>
+      </details>
+    </div>
+
+    <div class="form-card">
+      <h3>➕ إضافة مهمة</h3>
+      <div class="grid3">
+        <div class="field">
+          <label class="field-label">المنطقة</label>
+          <select id="fZone">
+            <option value="a">🅰️ منطقة الحريق 🔥</option>
+            <option value="c">⚙️ أنظمة المبنى</option>
+            <option value="b">🅱️ بقية المبنى 🌫️</option>
+            <option value="building">🏢 مستوى المبنى</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">الفريق المسؤول</label>
+          <select id="fParent"></select>
+          <select id="fTeam">
+            <option value="maint">🔧 فريق الصيانة والتشغيل</option>
+            <option value="cleaning">🧹 فريق التنظيف والتجهيز</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">الأولوية</label>
+          <select id="fPriority">
+            <option value="urgent">🔺 عاجل</option>
+            <option value="medium" selected>● متوسط</option>
+            <option value="normal">– عادي</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label class="field-label">وصف المهمة</label><input type="text" id="fDesc" placeholder="مثال: فحص وإعادة تمديدات الكهرباء بمنطقة الحريق"></div>
+      <div class="check-field"><input type="checkbox" id="fGate"><label for="fGate">🔒 هذه المهمة شرط لإحدى البوابات</label></div>
+      <div class="field"><label class="field-label">ملاحظات (اختياري)</label><textarea id="fNotes" placeholder="تفاصيل، اسم المقاول المكلّف..."></textarea></div>
+      <button class="btn" id="fSubmit">إضافة للمتابعة</button>
+      <div class="err" id="fErr"></div>
+    </div>
+
+    <div class="sec-label sec-tasks">📝 المهام</div>
+    <div class="filters" id="filters">
+      <button class="chip active" data-f="all">الكل</button>
+      <button class="chip" data-f="zone-a">🅰️ منطقة الحريق 🔥</button>
+      <button class="chip" data-f="zone-c">⚙️ أنظمة المبنى</button>
+      <button class="chip" data-f="zone-b">🅱️ بقية المبنى 🌫️</button>
+      <button class="chip" data-f="deferred">📝 مؤجلة</button>
+    </div>
+
+    <div class="task-list" id="taskList">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var TEAMS = {
+    maint:{label:"🔧 فريق الصيانة والتشغيل"},
+    cleaning:{label:"🧹 فريق التنظيف والتجهيز"}
+  };
+  var STATUS = {
+    done:{label:"منجز",icon:"✅",color:"var(--good)"}, progress:{label:"جاري العمل",icon:"🟡",color:"var(--warning)"},
+    pending:{label:"بانتظار مرحلة سابقة",icon:"⏳",color:"var(--pending)"}, late:{label:"متأخر",icon:"🔴",color:"var(--critical)"},
+    deferred:{label:"مؤجل",icon:"📝",color:"var(--faint)"}
+  };
+  var PRIORITY = {
+    urgent:{label:"عاجل",icon:"🔺",cls:"urgent"}, medium:{label:"متوسط",icon:"●",cls:"medium"}, normal:{label:"عادي",icon:"–",cls:"normal"}
+  };
+  var ZONES = {
+    a:{label:"🅰️ منطقة الحريق 🔥", cls:"zone-a"},
+    c:{label:"⚙️ أنظمة المبنى", cls:"zone-c"},
+    b:{label:"🅱️ بقية المبنى 🌫️", cls:"zone-b"},
+    building:{label:"🏢 مستوى المبنى", cls:""}
+  };
+  // كل بوابة لها نطاق: a أو b (تخص منطقة بعينها)
+  var GATES = [
+    {key:"electricalSafety", scope:"a", label:"الكهرباء مفحوصة ومُعاد تمديدها واعتُمدت سليمة"},
+    {key:"ductCleaning",     scope:"b", label:"الدكت مفحوص ومنظّف، وتشغيل تجريبي بدون رائحة دخان"}
+  ];
+
+  var els = {};
+  ["liveLabel","previewBtn","zoneASummary","zoneASummarySave","zoneAGates",
+   "zoneCSummary","zoneCSummarySave","zoneCGates",
+   "zoneBSummary","zoneBSummarySave","zoneBGates","tTotal","tDone","tGateLeft","tPct",
+   "chartZone","chartStatus","ganttChart","schedHealth","taskList","filters","fZone","fParent","fTeam","fPriority","fDesc","fGate","fNotes","fSubmit","fErr"
+  ].forEach(function(id){ els[id] = document.getElementById(id); });
+
+  var activeFilter = "all";
+  var tasks = [];
+  var editingId = null;
+  var deletingId = null;
+  var gatesState = {electricalSafety:false, ductCleaning:false};
+  var incidentStartedAt = null;
+  var zoneTargets = {a:2, c:2, b:10, final:2};
+  var zoneSummaries = {a:"", c:"", b:""};
+  var schedule = {};          // {groupId:{start,end}} بالأيام من بداية الحادثة
+  var db = null;
+
+  // ===== الجدول الزمني للمجموعات وصحته =====
+  var DAY = 24*60*60*1000;
+  function groupRange(p){
+    var s = schedule[p.id];
+    if(s && isFinite(s.start) && isFinite(s.end)) return {start:+s.start, end:+s.end};
+    // احتياط: من أهداف المناطق القديمة
+    if(p.zone === "a") return {start:0, end:zoneTargets.a};
+    if(p.zone === "c") return {start:0, end:zoneTargets.c};
+    if(p.zone === "b") return {start:0, end:zoneTargets.b};
+    var m = Math.max(zoneTargets.a, zoneTargets.c, zoneTargets.b);
+    return {start:m, end:m + (zoneTargets.final != null ? zoneTargets.final : 2)};
+  }
+  function groupColor(p){
+    return p.zone==="a"?"var(--zoneA)":p.zone==="c"?"var(--zoneC)":p.zone==="b"?"var(--zoneB)":"var(--phase-final)";
+  }
+  function groupIcon(p){ return String(p.description||"").trim().split(/\s+/)[0] || "•"; }
+  function groupProgress(p){
+    var live = tasks.filter(function(t){ return !t.isParent && t.parentId === p.id && t.status !== "deferred"; });
+    var done = live.filter(function(t){ return t.status === "done"; }).length;
+    return {done:done, total:live.length, pct: live.length ? Math.round(done/live.length*100) : 0};
+  }
+  function daysSinceIncident(){
+    return incidentStartedAt ? (Date.now() - new Date(incidentStartedAt).getTime()) / DAY : 0;
+  }
+  // يقارن الوقت المنقضي من مدة المجموعة بنسبة إنجازها
+  function groupHealth(p){
+    var r = groupRange(p), g = groupProgress(p), now = daysSinceIncident();
+    var dur = Math.max(r.end - r.start, 0.01);
+    var tp = Math.max(0, Math.min(100, Math.round((now - r.start)/dur*100)));
+    var h = {pct:g.pct, done:g.done, total:g.total, tp:tp, range:r};
+    if(g.total && g.done === g.total){ h.k="done"; h.icon="✅"; h.label="مكتملة"; }
+    else if(now < r.start){ h.k="wait"; h.icon="⏳"; h.label="لم يحن موعدها"; }
+    else if(now > r.end){ h.k="over"; h.icon="🔴"; h.label="تجاوزت الموعد"; }
+    else if(tp - g.pct <= 10){ h.k="ok"; h.icon="🟢"; h.label="على المسار"; }
+    else if(tp - g.pct <= 30){ h.k="risk"; h.icon="🟡"; h.label="تحتاج متابعة"; }
+    else { h.k="late"; h.icon="🔴"; h.label="متأخرة عن الجدول"; }
+    return h;
+  }
+  function fmtDue(dayOffset){
+    if(!incidentStartedAt) return "";
+    var d = new Date(new Date(incidentStartedAt).getTime() + dayOffset*DAY);
+    try {
+      return d.toLocaleString("ar-SA-u-ca-gregory-nu-latn",
+        {timeZone:"Asia/Riyadh", weekday:"long", day:"numeric", month:"long", hour:"numeric", minute:"2-digit"});
+    } catch(e){ return d.toISOString().slice(0,16).replace("T"," "); }
+  }
+  function sortedParents(){
+    return tasks.filter(function(t){ return t.isParent; })
+                .sort(function(a,b){ return (a.orderIdx||0)-(b.orderIdx||0); });
+  }
+  // اللوحات المطوية تبقى مطوية عند الطباعة — تُفتح مؤقتًا ليخرج التقرير كاملًا
+  (function(){
+    var reopened = [];
+    window.addEventListener("beforeprint", function(){
+      reopened = [];
+      document.querySelectorAll("details.foldable:not([open])").forEach(function(d){
+        d.open = true; reopened.push(d);
+      });
+    });
+    window.addEventListener("afterprint", function(){
+      reopened.forEach(function(d){ d.open = false; });
+      reopened = [];
+    });
+  })();
+
+  var lockedToReport = false;
+  var reportMode = (function(){
+    try { if(/[?&#]report=1(\b|$)/.test(location.search + location.hash)) return true; } catch(e){}
+    try {
+      if(window.parent && window.parent !== window){
+        var p = window.parent.location;
+        if(/[?&#]report=1(\b|$)/.test(p.search + p.hash)) return true;
+      }
+    } catch(e){}
+    try { if(document.referrer && /[?&#]report=1(\b|$)/.test(document.referrer)) return true; } catch(e){}
+    return false;
+  })();
+  if(reportMode) document.body.classList.add("report-mode");
+
+  function escapeHtml(s){
+    return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; });
+  }
+  function relTime(iso){
+    if(!iso) return "";
+    var d = new Date(iso); if(isNaN(d.getTime())) return "";
+    var mins = Math.round((Date.now()-d.getTime())/60000);
+    if(mins<1) return "الآن"; if(mins<60) return "قبل "+mins+" د";
+    var hrs = Math.round(mins/60); if(hrs<24) return "قبل "+hrs+" س";
+    return "قبل "+Math.round(hrs/24)+" ي";
+  }
+
+  function renderGateGroup(container, scope){
+    var items = GATES.filter(function(g){ return g.scope === scope; });
+    container.innerHTML = items.map(function(g){
+      return '<div class="gate-item"><input type="checkbox" id="gate-'+g.key+'" data-key="'+g.key+'" '+(gatesState[g.key]?'checked':'')+'>'+
+        '<div><label for="gate-'+g.key+'">'+g.label+'</label></div></div>';
+    }).join("");
+    Array.prototype.forEach.call(container.querySelectorAll("input"), function(cb){
+      cb.addEventListener("change", function(){ toggleGate(cb.getAttribute("data-key"), cb.checked); });
+    });
+    return items;
+  }
+
+  function renderGates(){
+    renderGateGroup(els.zoneAGates, "a");
+    renderGateGroup(els.zoneBGates, "b");
+
+    var totalGates = GATES.length;
+    var totalDone = GATES.filter(function(g){ return gatesState[g.key]; }).length;
+    els.tGateLeft.textContent = totalGates - totalDone;
+  }
+
+  function toggleGate(key, value){
+    if(!db) return;
+    gatesState[key] = value;
+    renderGates();
+    db.doc("meta/gates").update((function(){ var d={}; d[key]=value; return d; })())
+      .catch(function(e){ handleWriteError(e); db.doc("meta/gates").set(Object.assign({}, gatesState)).catch(handleWriteError); });
+  }
+
+  function renderCountdowns(){
+    renderGantt();
+  }
+
+  // يُستدعى إمّا من فحص الصلاحية أو عند رفض أي عملية حفظ فعليًا
+  function lockToReport(){
+    if(lockedToReport) return;
+    lockedToReport = true;
+    reportMode = true;
+    document.body.classList.add("report-mode");
+    if(els.previewBtn) els.previewBtn.hidden = true;
+    editingId = null; deletingId = null;
+    renderList();
+  }
+  // الأخطاء التي تعني "ما عندك صلاحية الكتابة"
+  function isPermissionError(e){
+    if(!e) return false;
+    var c = String(e.code || e.name || "").toLowerCase();
+    var m = String(e.message || "").toLowerCase();
+    return c.indexOf("permission") > -1 || c.indexOf("invalid_argument") > -1 ||
+           c.indexOf("not_granted") > -1 || c.indexOf("denied") > -1 ||
+           m.indexOf("permission") > -1 || m.indexOf("denied") > -1;
+  }
+  function handleWriteError(e){
+    if(isPermissionError(e)) lockToReport();
+  }
+
+  function renderSummaries(){
+    [["a", els.zoneASummary], ["c", els.zoneCSummary], ["b", els.zoneBSummary]].forEach(function(pair){
+      var el = pair[1];
+      el.value = zoneSummaries[pair[0]] || "";
+      // في وضع العرض: لا تُظهر نص المثال كأنه ملخص حقيقي
+      if(reportMode) el.placeholder = el.value ? "" : "— لم يُسجَّل ملخص بعد —";
+    });
+  }
+  // تأكيد بصري واضح لكل عملية حفظ — نجاحًا أو فشلًا
+  function flashBtn(btn, text, ok){
+    if(!btn) return;
+    if(!btn.dataset.label) btn.dataset.label = btn.textContent;
+    btn.textContent = text;
+    btn.style.background = ok === null ? "" : (ok ? "var(--good)" : "var(--critical)");
+    if(ok !== null){
+      clearTimeout(btn._t);
+      btn._t = setTimeout(function(){
+        btn.textContent = btn.dataset.label;
+        btn.style.background = "";
+      }, 2500);
+    }
+  }
+
+  function saveZoneSummary(zoneKey, textarea, btn){
+    if(!db){ flashBtn(btn, "✗ لا يوجد اتصال", false); return; }
+    var v = textarea.value.trim();
+    zoneSummaries[zoneKey] = v;
+    var data = {}; data[zoneKey] = v;
+    flashBtn(btn, "جارٍ الحفظ…", null);
+    db.doc("meta/summaries").update(data)
+      .then(function(){ flashBtn(btn, "✓ تم الحفظ", true); })
+      .catch(function(e){
+        // المستند غير موجود بعد → أنشئه
+        db.doc("meta/summaries").set(Object.assign({}, zoneSummaries))
+          .then(function(){ flashBtn(btn, "✓ تم الحفظ", true); })
+          .catch(function(e2){
+            handleWriteError(e2);
+            flashBtn(btn, isPermissionError(e2) ? "✗ لا تملك صلاحية" : "✗ لم يُحفظ", false);
+          });
+      });
+  }
+  els.zoneASummarySave.addEventListener("click", function(){ saveZoneSummary("a", els.zoneASummary, els.zoneASummarySave); });
+  els.zoneCSummarySave.addEventListener("click", function(){ saveZoneSummary("c", els.zoneCSummary, els.zoneCSummarySave); });
+  els.zoneBSummarySave.addEventListener("click", function(){ saveZoneSummary("b", els.zoneBSummary, els.zoneBSummarySave); });
+
+  function renderBars(container, counts, order, colorOf, labelOf){
+    var max = 0; order.forEach(function(k){ if((counts[k]||0)>max) max=counts[k]; }); if(max===0) max=1;
+    container.innerHTML = order.map(function(k){
+      var v = counts[k]||0, pct = Math.round((v/max)*100);
+      return '<div class="bar-row"><div class="lbl">'+labelOf(k)+'</div>'+
+        '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+colorOf(k)+'"></div></div>'+
+        '<div class="bar-val num">'+v+'</div></div>';
+    }).join("");
+  }
+
+  function render(){
+    var statTasks = tasks.filter(function(t){ return t.status !== "deferred" && !t.isParent; });
+    var total = statTasks.length;
+    var statusCounts = {done:0,progress:0,pending:0,late:0};
+    var zoneCounts = {a:0,c:0,b:0,building:0};
+    statTasks.forEach(function(t){
+      if(statusCounts[t.status]!==undefined) statusCounts[t.status]++;
+      if(zoneCounts[t.zone]!==undefined) zoneCounts[t.zone]++;
+    });
+    els.tTotal.textContent = total;
+    els.tDone.textContent = statusCounts.done;
+    els.tPct.textContent = total ? Math.round((statusCounts.done/total)*100)+"%" : "0%";
+
+    renderBars(els.chartStatus, statusCounts, ["done","progress","pending","late"],
+      function(k){return STATUS[k].color;}, function(k){return STATUS[k].icon+" "+STATUS[k].label;});
+    renderBars(els.chartZone, zoneCounts, ["a","c","b","building"],
+      function(k){return k==="a"?"var(--zoneA)":k==="c"?"var(--zoneC)":k==="b"?"var(--zoneB)":"var(--phase-final)";},
+      function(k){return ZONES[k].label;});
+
+    renderGantt();
+    refreshParentSelect();
+    renderList();
+    els.liveLabel.textContent = "محدّثة الآن — " + total + " مهمة";
+  }
+
+  function renderGantt(){
+    if(!incidentStartedAt){ els.ganttChart.innerHTML = ""; els.schedHealth.innerHTML = ""; return; }
+    var daysSince = daysSinceIncident();
+    var parents = sortedParents();
+
+    // مسار لكل مجموعة (مهمة أم) — نفس النسبة المعروضة في بطاقة المجموعة
+    var lanes = parents.map(function(p){
+      var r = groupRange(p), g = groupProgress(p);
+      return {id:p.id, label:groupIcon(p), full:p.description, startDay:r.start, endDay:r.end,
+              color:groupColor(p), pct:g.pct};
+    });
+    var maxEnd = lanes.reduce(function(m,l){ return Math.max(m, l.endDay); }, 1);
+    var totalSpan = Math.max(maxEnd, daysSince, 1) + 1;
+
+    var axisCount = Math.min(Math.ceil(totalSpan)+1, 16);
+    var axisStep = Math.max(1, Math.round(totalSpan/axisCount));
+    var axisHtml = "";
+    for(var d=0; d<=totalSpan; d+=axisStep){
+      axisHtml += '<span style="position:absolute;left:'+((d/totalSpan)*100)+'%;transform:translateX(-50%);font-size:10px;color:var(--faint)">'+Math.round(d)+'</span>';
+    }
+
+    var rowsHtml = lanes.map(function(l){
+      var leftPct = (l.startDay/totalSpan)*100;
+      var widthPct = Math.max(((l.endDay-l.startDay)/totalSpan)*100, 2);
+      var pct = l.pct;
+      // الشريط الضيّق لا يتسع للنص داخله — تُوضع النسبة خارجه بدل أن تُقتطع،
+      // وإن كان الشريط قريبًا من الحافة اليمنى تُوضع على يساره حتى لا تخرج عن اللوحة.
+      var endPct = leftPct + widthPct;
+      var narrow = widthPct < 32;
+      var outAtEnd = endPct <= 72;
+      var inner = narrow ? "" :
+        '<div style="position:relative;z-index:1;font-size:10.5px;font-weight:800;color:#fff;line-height:26px;padding:0 7px;direction:rtl;white-space:nowrap">'+pct+'% منجز</div>';
+      var outStyle = "position:absolute;top:0;line-height:26px;font-size:10.5px;font-weight:800;color:var(--muted);white-space:nowrap;direction:ltr;z-index:1;";
+      var outside = !narrow ? "" : (outAtEnd
+        ? '<div style="'+outStyle+'left:calc('+endPct+'% + 7px)">'+pct+'%</div>'
+        : '<div style="'+outStyle+'left:calc('+leftPct+'% - 7px);transform:translateX(-100%)">'+pct+'%</div>');
+      return '<div class="gantt-row"><div class="gantt-label" title="'+escapeHtml(l.full)+'">'+escapeHtml(l.label)+'</div>'+
+        '<div class="gantt-track"><div class="gantt-bar" style="direction:ltr;left:'+leftPct+'%;width:'+widthPct+'%;background:color-mix(in srgb, '+l.color+' 26%, transparent)">'+
+          '<div style="position:absolute;inset:0;left:0;width:'+pct+'%;background:'+l.color+'"></div>'+
+          inner +
+        '</div>'+ outside +'</div></div>';
+    }).join("");
+
+    var todayPct = Math.max(0, Math.min(100, (daysSince/totalSpan)*100));
+    // الصفحة RTL: عمود الأيقونات على اليمين والمسار على اليسار،
+    // فموضع خط "اليوم" من اليسار = (عرض المسار) × النسبة، بدون إضافة عرض العمود
+    var GANTT_OFFSET = "58px";
+    var todayLeft = 'calc((100% - '+GANTT_OFFSET+') * '+(todayPct/100)+')';
+    var todayMarker = '<div class="gantt-today-line" style="left:'+todayLeft+'"></div>'+
+      '<div class="gantt-today-tag" style="left:'+todayLeft+'">اليوم</div>';
+    var legendHtml = '<div class="gantt-legend">'+lanes.map(function(l){ return '<span>'+escapeHtml(l.full)+'</span>'; }).join("")+'</div>';
+
+    els.ganttChart.innerHTML = lanes.length ? (
+      '<div class="gantt-outer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'+
+          '<div style="width:50px;flex:0 0 auto"></div>'+
+          '<div style="flex:1;min-width:0;position:relative;height:12px;direction:ltr">'+axisHtml+'</div>'+
+        '</div>'+
+        rowsHtml + todayMarker +
+      '</div>' + legendHtml) : '<div class="empty">لا توجد مجموعات بعد.</div>';
+
+    renderHealth(parents);
+  }
+
+  // ===== صحة الجدول + تعديل المواعيد (للمدير فقط) =====
+  function renderHealth(parents){
+    var box = els.schedHealth;
+    // لا تُعِد الرسم أثناء كتابة المدير في حقل موعد
+    var ae = document.activeElement;
+    if(ae && ae.tagName === "INPUT" && box.contains(ae)) return;
+    if(!parents.length){ box.innerHTML = ""; return; }
+    var html = '<div class="sched-title">⏱️ صحة الجدول — الوقت المنقضي من مدة كل مجموعة مقابل إنجازها</div>'+
+      '<div class="sched-legend">الشريط الملوّن = الإنجاز · الخط الأسود = أين يُفترض أن نكون الآن</div>';
+    parents.forEach(function(p){
+      var h = groupHealth(p);
+      var timeTxt = h.k === "wait" ? 'تبدأ: <b>'+escapeHtml(fmtDue(h.range.start))+'</b>'
+                                  : 'الوقت المنقضي <b class="num">'+h.tp+'%</b>';
+      html += '<div class="sched-row h-'+h.k+'">'+
+        '<div class="sched-top"><div class="sched-name">'+escapeHtml(p.description)+'</div>'+
+          '<span class="hchip h-'+h.k+'">'+h.icon+' '+h.label+'</span></div>'+
+        '<div class="sched-bar" title="الشريط = الإنجاز، والخط = أين يُفترض أن نكون الآن">'+
+          '<i class="fill h-'+h.k+'" style="width:'+h.pct+'%"></i>'+
+          (h.k === "wait" ? '' : '<i class="mark" style="right:'+h.tp+'%"></i>')+'</div>'+
+        '<div class="sched-meta"><span class="ln">'+timeTxt+' · الإنجاز <b class="num">'+h.pct+'%</b> <span class="nw">('+h.done+' من '+h.total+')</span></span>'+
+          '<span class="ln">الموعد: <b>'+escapeHtml(fmtDue(h.range.end))+'</b></span></div>'+
+        '<div class="sched-edit">من اليوم <input type="number" inputmode="decimal" step="0.5" min="0" class="s-start" data-id="'+p.id+'" value="'+h.range.start+'">'+
+          ' إلى اليوم <input type="number" inputmode="decimal" step="0.5" min="0" class="s-end" data-id="'+p.id+'" value="'+h.range.end+'">'+
+          '<button class="s-save" data-id="'+p.id+'">حفظ الموعد</button>'+
+          '<span class="hint">الأيام تُحسب من بداية الحادثة — يمكن استخدام نصف يوم (مثل 2.5)</span></div>'+
+      '</div>';
+    });
+    box.innerHTML = html;
+    Array.prototype.forEach.call(box.querySelectorAll(".s-save"), function(btn){
+      btn.addEventListener("click", function(){ saveSchedule(btn.getAttribute("data-id"), btn); });
+    });
+  }
+
+  function saveSchedule(id, btn){
+    if(!db){ flashBtn(btn, "✗ لا يوجد اتصال", false); return; }
+    var row = btn.closest(".sched-row");
+    var s = parseFloat(row.querySelector(".s-start").value), e = parseFloat(row.querySelector(".s-end").value);
+    if(!isFinite(s) || !isFinite(e) || s < 0 || e <= s){ flashBtn(btn, "✗ النهاية يجب أن تكون بعد البداية", false); return; }
+    schedule[id] = {start:s, end:e};
+    var patch = {}; patch[id] = {start:s, end:e};
+    flashBtn(btn, "جارٍ الحفظ…", null);
+    db.doc("meta/schedule").update(patch)
+      .then(function(){ flashBtn(btn, "✓ تم الحفظ", true); btn.blur(); renderGantt(); renderList(); })
+      .catch(function(){
+        db.doc("meta/schedule").set(Object.assign({}, schedule))
+          .then(function(){ flashBtn(btn, "✓ تم الحفظ", true); renderGantt(); renderList(); })
+          .catch(function(e2){
+            handleWriteError(e2);
+            flashBtn(btn, isPermissionError(e2) ? "✗ لا تملك صلاحية" : "✗ لم يُحفظ", false);
+          });
+      });
+  }
+
+  function renderList(){
+    var filtered = tasks.filter(function(t){
+      if(t.isParent) return false;                 // الأم تُعرض كحاوية لا كمهمة
+      // المهام المؤجلة (مسودّات) لا تظهر للزائر إطلاقًا
+      if(reportMode && t.status==="deferred") return false;
+      if(activeFilter==="all") return true;
+      if(activeFilter==="deferred") return t.status==="deferred";
+      if(activeFilter==="zone-a") return t.zone==="a";
+      if(activeFilter==="zone-c") return t.zone==="c";
+      if(activeFilter==="zone-b") return t.zone==="b";
+      return true;
+    });
+    if(filtered.length===0){ els.taskList.innerHTML = '<div class="empty">لا توجد مهام مطابقة حاليًا.</div>'; return; }
+    var sortFn = function(a,b){
+      var aw=(a.gate?-2:0)+(a.status==="late"?-1:0), bw=(b.gate?-2:0)+(b.status==="late"?-1:0);
+      return aw-bw;
+    };
+
+    // ===== بناء الشجرة: مهام أم ← فروع =====
+    var byId = {}; tasks.forEach(function(t){ byId[t.id] = t; });
+    var shown = {}; filtered.forEach(function(t){ shown[t.id] = true; });
+    var parents = tasks.filter(function(t){ return t.isParent; }).sort(function(a,b){
+      return (a.orderIdx||0) - (b.orderIdx||0);
+    });
+    var childrenOf = {};
+    tasks.forEach(function(t){
+      if(t.isParent || !t.parentId) return;
+      (childrenOf[t.parentId] = childrenOf[t.parentId] || []).push(t);
+    });
+
+    var html = "", rendered = {};
+    parents.forEach(function(p){
+      var kids = (childrenOf[p.id] || []).filter(function(k){ return shown[k.id]; }).sort(sortFn);
+      if(!kids.length) return;                       // أم بلا فروع ظاهرة لا تُعرض
+      kids.forEach(function(k){ rendered[k.id] = true; });
+      // النسبة محسوبة من الفروع غير المؤجلة
+      var live = (childrenOf[p.id] || []).filter(function(k){ return k.status !== "deferred"; });
+      var done = live.filter(function(k){ return k.status === "done"; }).length;
+      var pct = live.length ? Math.round(done/live.length*100) : 0;
+      var zn = ZONES[p.zone] || ZONES.building;
+      html += '<div class="group '+zn.cls+'">'+
+        '<div class="group-head">'+
+          '<div class="group-title">'+escapeHtml(p.description)+' '+(function(){ var gh=groupHealth(p); return '<span class="hchip h-'+gh.k+'">'+gh.icon+' '+gh.label+'</span>'; })()+'</div>'+
+          '<div class="group-meta"><span class="group-count">'+done+' / '+live.length+'</span>'+
+            '<div class="group-bar"><i style="width:'+pct+'%"></i></div>'+
+            '<span class="group-pct">'+pct+'%</span></div>'+
+        '</div>'+
+        '<div class="group-kids">'+ kids.map(function(k){
+          return (!reportMode && k.id === editingId) ? renderTaskEdit(k) : renderTaskView(k);
+        }).join("") +'</div>'+
+      '</div>';
+    });
+
+    // مهام بلا أم (أو يتيمة) تُعرض مستقلة كما كانت
+    var loose = filtered.filter(function(t){ return !t.isParent && !rendered[t.id]; }).sort(sortFn);
+    if(loose.length){
+      if(html) html += '<div class="sec-label" style="margin:4px 0 -2px">مهام مستقلة</div>';
+      html += loose.map(function(t){
+        return (!reportMode && t.id === editingId) ? renderTaskEdit(t) : renderTaskView(t);
+      }).join("");
+    }
+    els.taskList.innerHTML = html || '<div class="empty">لا توجد مهام مطابقة حاليًا.</div>';
+    Array.prototype.forEach.call(els.taskList.querySelectorAll(".status-select"), function(sel){
+      sel.addEventListener("change", function(){ updateStatus(sel.getAttribute("data-id"), sel.value); });
+    });
+    if(!reportMode){
+      Array.prototype.forEach.call(els.taskList.querySelectorAll(".edit-btn"), function(btn){
+        btn.addEventListener("click", function(){ editingId = btn.getAttribute("data-id"); deletingId = null; renderList(); });
+      });
+      Array.prototype.forEach.call(els.taskList.querySelectorAll(".del-btn"), function(btn){
+        btn.addEventListener("click", function(){
+          var id = btn.getAttribute("data-id");
+          if(deletingId === id){ deleteTask(id); deletingId = null; }
+          else { deletingId = id; renderList(); }
+        });
+      });
+      var cancelBtn = els.taskList.querySelector(".cancel-btn");
+      if(cancelBtn) cancelBtn.addEventListener("click", function(){ editingId = null; renderList(); });
+      var saveBtn = els.taskList.querySelector(".save-btn");
+      if(saveBtn) saveBtn.addEventListener("click", function(){ saveTaskEdit(saveBtn.getAttribute("data-id")); });
+    }
+  }
+
+  function parentOptions(selected){
+    var ps = tasks.filter(function(t){ return t.isParent; })
+                  .sort(function(a,b){ return (a.orderIdx||0)-(b.orderIdx||0); });
+    return '<option value="">— بلا مهمة أم —</option>' + ps.map(function(p){
+      return '<option value="'+p.id+'"'+(p.id===selected?' selected':'')+'>'+escapeHtml(p.description)+'</option>';
+    }).join("");
+  }
+  function refreshParentSelect(){
+    if(!els.fParent) return;
+    var cur = els.fParent.value;
+    els.fParent.innerHTML = parentOptions(cur);
+  }
+
+  function renderTaskView(t){
+    var pr = PRIORITY[t.priority]||PRIORITY.normal;
+    var tm = TEAMS[t.team]||TEAMS.maint;
+    var zn = ZONES[t.zone]||ZONES.building;
+    var statusOpts = Object.keys(STATUS).map(function(k){
+      return '<option value="'+k+'"'+(k===t.status?' selected':'')+'>'+STATUS[k].icon+' '+STATUS[k].label+'</option>';
+    }).join("");
+    var st = STATUS[t.status]||STATUS.pending;
+    var statusHtml = reportMode
+      ? '<span class="status-badge">'+st.icon+' '+st.label+'</span>'
+      : '<select class="status-select" data-id="'+t.id+'">'+statusOpts+'</select>';
+    var actionsHtml = reportMode ? '' : (
+      '<div class="task-actions">'+
+        '<button class="icon-btn edit-btn" data-id="'+t.id+'" title="تعديل">✏️</button>'+
+        '<button class="icon-btn del-btn'+(deletingId===t.id?' confirming':'')+'" data-id="'+t.id+'" title="حذف">'+(deletingId===t.id?'تأكيد الحذف؟':'🗑️')+'</button>'+
+      '</div>'
+    );
+    return '<div class="task '+zn.cls+(t.gate?' gate':'')+(t.status==="deferred"?' deferred-task':'')+'" data-id="'+t.id+'">'+
+      '<div class="task-top"><div class="task-desc">'+(t.gate?'<span class="lock">🔒</span> ':'')+escapeHtml(t.description)+'</div>'+
+      '<div class="task-top-actions">'+statusHtml+actionsHtml+'</div></div>'+
+      '<div class="task-meta"><span class="pill">'+zn.label+'</span><span class="pill">'+tm.label+'</span>'+
+      '<span class="prio '+pr.cls+'">'+pr.icon+' '+pr.label+'</span><span class="age">أُضيفت '+relTime(t.createdAt)+'</span></div>'+
+      (t.notes?'<div class="notes">'+escapeHtml(t.notes)+'</div>':'')+'</div>';
+  }
+
+  var ZONE_ORDER = ["a","c","b","building"];
+  var TEAM_ORDER = ["maint","cleaning"];
+  var PRIORITY_ORDER = ["urgent","medium","normal"];
+
+  function renderTaskEdit(t){
+    var zoneOpts = ZONE_ORDER.map(function(k){ return '<option value="'+k+'"'+(k===t.zone?' selected':'')+'>'+ZONES[k].label+'</option>'; }).join("");
+    var teamOpts = TEAM_ORDER.map(function(k){ return '<option value="'+k+'"'+(k===t.team?' selected':'')+'>'+TEAMS[k].label+'</option>'; }).join("");
+    var prioOpts = PRIORITY_ORDER.map(function(k){ return '<option value="'+k+'"'+(k===t.priority?' selected':'')+'>'+PRIORITY[k].icon+' '+PRIORITY[k].label+'</option>'; }).join("");
+    return '<div class="task '+((ZONES[t.zone]||ZONES.building).cls)+'" data-id="'+t.id+'">'+
+      '<div class="task-edit">'+
+        '<input type="text" class="edit-desc" value="'+escapeHtml(t.description)+'" placeholder="وصف المهمة">'+
+        '<select class="edit-parent">'+parentOptions(t.parentId||"")+'</select>'+
+        '<div class="grid3">'+
+          '<select class="edit-zone">'+zoneOpts+'</select>'+
+          '<select class="edit-team">'+teamOpts+'</select>'+
+          '<select class="edit-prio">'+prioOpts+'</select>'+
+        '</div>'+
+        '<textarea class="edit-notes" placeholder="ملاحظات (اختياري)">'+escapeHtml(t.notes||"")+'</textarea>'+
+        '<div class="edit-actions">'+
+          '<button class="save-btn" data-id="'+t.id+'">💾 حفظ</button>'+
+          '<button class="cancel-btn" data-id="'+t.id+'">إلغاء</button>'+
+        '</div>'+
+      '</div></div>';
+  }
+
+  function saveTaskEdit(id){
+    if(!db) return;
+    var card = els.taskList.querySelector('.task[data-id="'+id+'"]');
+    if(!card) return;
+    var desc = card.querySelector(".edit-desc").value.trim();
+    if(!desc) return;
+    var data = {
+      description: desc,
+      zone: card.querySelector(".edit-zone").value,
+      parentId: (card.querySelector(".edit-parent")||{value:""}).value,
+      team: card.querySelector(".edit-team").value,
+      priority: card.querySelector(".edit-prio").value,
+      notes: card.querySelector(".edit-notes").value.trim(),
+      updatedAt: new Date().toISOString()
+    };
+    db.collection("tasks").doc(id).update(data).then(function(){
+      editingId = null; renderList();
+    }).catch(function(e){ console.error(e); handleWriteError(e); });
+  }
+
+  function deleteTask(id){
+    if(!db) return;
+    db.collection("tasks").doc(id).delete().catch(function(e){ console.error(e); handleWriteError(e); });
+  }
+
+  function updateStatus(id, status){
+    if(!db) return;
+    db.collection("tasks").doc(id).update({status:status, updatedAt:new Date().toISOString()}).catch(function(e){ console.error(e); handleWriteError(e); });
+  }
+
+  els.filters.addEventListener("click", function(e){
+    var btn = e.target.closest(".chip"); if(!btn) return;
+    activeFilter = btn.getAttribute("data-f");
+    Array.prototype.forEach.call(els.filters.querySelectorAll(".chip"), function(c){ c.classList.toggle("active", c===btn); });
+    renderList();
+  });
+
+  els.fSubmit.addEventListener("click", function(){
+    var desc = els.fDesc.value.trim();
+    els.fErr.textContent = "";
+    if(!desc){ els.fErr.textContent = "اكتب وصف المهمة أولًا."; return; }
+    if(!db){ els.fErr.textContent = "تعذّر الاتصال بقاعدة البيانات."; return; }
+    els.fSubmit.disabled = true;
+    db.collection("tasks").add({
+      zone: els.fZone.value, parentId: els.fParent ? els.fParent.value : "", team: els.fTeam.value, priority: els.fPriority.value,
+      description: desc, gate: !!els.fGate.checked, notes: els.fNotes.value.trim(),
+      status: "pending", createdAt: new Date().toISOString()
+    }).then(function(){
+      els.fDesc.value=""; els.fNotes.value=""; els.fGate.checked=false; els.fPriority.value="medium";
+    }).catch(function(e){
+      console.error(e);
+      handleWriteError(e);
+      els.fErr.textContent = isPermissionError(e)
+        ? "ليست لديك صلاحية الإضافة — اطلب من مالك اللوحة دعوتك بالإيميل بصلاحية تعديل."
+        : "تعذّرت الإضافة، حاول مرة أخرى.";
+    }).finally(function(){ els.fSubmit.disabled=false; });
+  });
+
+  // نسخة التقرير الثابتة: نبّه إن تقادمت البيانات (فشل التحديث التلقائي مثلًا)
+  function markStale(){
+    try {
+      if(typeof FROZEN_DATA === "undefined" || !FROZEN_DATA.generatedAt) return;
+      var hrs = (Date.now() - new Date(FROZEN_DATA.generatedAt).getTime()) / 3600000;
+      if(hrs <= 6) return;
+      var b = document.querySelector(".report-banner"); if(!b) return;
+      b.classList.add("stale");
+      var n = document.createElement("span"); n.className = "stale-note";
+      n.textContent = "⚠️ مضى على آخر تحديث " + (hrs < 48 ? Math.floor(hrs)+" ساعة" : Math.floor(hrs/24)+" أيام") + " — قد لا تعكس الأرقام الوضع الحالي";
+      b.appendChild(n);
+    } catch(e){}
+  }
+  markStale();
+
+  function boot(){
+    if(!window.claude || !window.claude.use){
+      els.taskList.innerHTML = '<div class="empty">هذه اللوحة تحتاج فتحها داخل Claude لتعمل المشاركة الحية.</div>';
+      renderGates(); renderCountdowns();
+      return;
+    }
+    renderGates(); renderCountdowns();
+    Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function(r){
+      db = r[0];
+      var user = r[1];
+
+      // ===== تحديد صلاحية الكتابة =====
+      // الافتراضي: لا صلاحية. الكتابة تُمنح فقط عند التأكد منها.
+      var canWrite = true;
+      if(!db || !user){
+        // غير مسجّل دخول، أو لا وصول لقاعدة البيانات → قراءة فقط قطعًا
+        canWrite = false;
+      } else if(typeof user.can === "function"){
+        try { if(user.can("data.write") === false) canWrite = false; } catch(e){}
+      }
+
+      if(!canWrite){
+        lockToReport();
+      } else {
+        if(reportMode) document.body.classList.add("report-mode");
+        els.previewBtn.hidden = false;
+        els.previewBtn.textContent = reportMode ? "↩︎ رجوع لوضع الإدارة" : "👁️ معاينة وضع العرض";
+        els.previewBtn.addEventListener("click", function(){
+          reportMode = !reportMode;
+          document.body.classList.toggle("report-mode", reportMode);
+          els.previewBtn.textContent = reportMode ? "↩︎ رجوع لوضع الإدارة" : "👁️ معاينة وضع العرض";
+          editingId = null; deletingId = null;
+          renderList();
+        });
+      }
+
+      if(!db){
+        // لا وصول للبيانات (زائر غير مسجّل): لا تعرض أصفارًا مضلّلة —
+        // أخفِ كل الأقسام الرقمية ووجّهه لنسخة التقرير.
+        document.body.classList.add("no-data");
+        els.liveLabel.textContent = "عرض فقط";
+        els.taskList.innerHTML = "";
+        renderSummaries();
+        return;
+      }
+
+      var loadTimer = setTimeout(function(){ els.liveLabel.textContent = "جارٍ الاتصال..."; }, 10000);
+
+      db.doc("meta/gates").onSnapshot(function(snap){
+        if(snap.exists){ var d = snap.data(); GATES.forEach(function(g){ gatesState[g.key] = !!d[g.key]; }); renderGates(); }
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/zones").onSnapshot(function(snap){
+        if(snap.exists){
+          var d = snap.data();
+          if(d.a != null) zoneTargets.a = d.a;
+          if(d.c != null) zoneTargets.c = d.c;
+          if(d.b != null) zoneTargets.b = d.b;
+          if(d.final != null) zoneTargets.final = d.final;
+        } else {
+          db.doc("meta/zones").set(Object.assign({}, zoneTargets)).catch(function(){});
+        }
+        renderCountdowns();
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/schedule").onSnapshot(function(snap){
+        if(snap.exists){ schedule = snap.data() || {}; }
+        renderGantt(); renderList();
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/summaries").onSnapshot(function(snap){
+        if(snap.exists){
+          var d = snap.data();
+          if(d.a != null) zoneSummaries.a = d.a;
+          if(d.c != null) zoneSummaries.c = d.c;
+          if(d.b != null) zoneSummaries.b = d.b;
+        }
+        renderSummaries();
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/incident").onSnapshot(function(snap){
+        if(snap.exists){ incidentStartedAt = snap.data().startedAt; }
+        else { incidentStartedAt = new Date().toISOString(); db.doc("meta/incident").set({startedAt:incidentStartedAt}).catch(function(){}); }
+        renderCountdowns();
+      }, function(e){ console.error(e); });
+
+      db.collection("tasks").orderBy("createdAt","desc").limit(500).onSnapshot(function(snap){
+        clearTimeout(loadTimer);
+        tasks = snap.docs.map(function(d){
+          var data = d.data()||{};
+          return {id:d.id, zone:data.zone||"building", team:data.team||"maint", priority:data.priority||"normal",
+            description:data.description||"", notes:data.notes||"", gate:!!data.gate,
+            status:data.status||"pending", createdAt:data.createdAt||null,
+            isParent:!!data.isParent, parentId:data.parentId||"", orderIdx:data.orderIdx||0};
+        });
+        render();
+      }, function(err){ clearTimeout(loadTimer); console.error(err); els.taskList.innerHTML = '<div class="empty">تعذّر تحميل المهام حاليًا.</div>'; });
+    });
+  }
+
+  boot();
+})();
+</script>
