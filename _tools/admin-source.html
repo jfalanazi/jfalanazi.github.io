@@ -134,6 +134,38 @@
   .notes-wrap .warn-dot{color:var(--warning)}
   .notes-wrap .notes{margin-top:6px}
 
+  /* ====== ملاحظات المدير (خاصة) ====== */
+  .mgr-badge{border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.12); color:#fff; border-radius:999px; padding:6px 12px; font-size:11.5px; font-weight:800; cursor:pointer; font-family:inherit; white-space:nowrap}
+  .mgr-panel{margin-bottom:14px; border:1.5px dashed var(--accent-2)}
+  .mgr-panel > summary .lock-note{font-size:11px; font-weight:600; color:var(--faint); margin-right:6px}
+  .mgr-nudge{margin:0 0 12px; padding:10px 14px; border-radius:10px; background:color-mix(in srgb, var(--warning) 16%, var(--surface)); border:1px solid var(--warning); font-size:12.5px; font-weight:700; cursor:pointer}
+  .mgr-form{display:grid; gap:7px; padding:10px 0 12px; border-bottom:1px dashed var(--border); margin-bottom:10px}
+  .mgr-form textarea{width:100%; min-height:56px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; resize:vertical}
+  .mgr-form .row{display:flex; gap:7px; flex-wrap:wrap}
+  .mgr-form select, .mgr-item select{background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 8px; font-size:12px; font-family:inherit}
+  .mgr-form button{border:none; background:var(--accent-2); color:#fff; border-radius:7px; padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit}
+  .mgr-cat{font-size:12px; font-weight:800; color:var(--muted); margin:12px 0 6px}
+  .mgr-item{border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:7px; background:var(--surface)}
+  .mgr-item.high{border-right:4px solid var(--critical)}
+  .mgr-top{display:flex; justify-content:space-between; gap:8px; align-items:flex-start}
+  .mgr-text{font-size:13px; font-weight:700; line-height:1.7}
+  .mgr-meta{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:6px; font-size:11px; color:var(--faint)}
+  .mgr-acts{display:flex; gap:5px; flex:0 0 auto}
+  .mgr-acts button{border:1px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:7px; padding:3px 8px; font-size:11px; cursor:pointer; font-family:inherit}
+  .mgr-acts .confirming{border-color:var(--critical); color:var(--critical)}
+  .mgr-study > summary{cursor:pointer; font-size:11.5px; font-weight:700; color:var(--accent-2); margin-top:6px}
+  .mgr-study textarea{width:100%; min-height:70px; margin-top:6px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 10px; font-size:12.5px; font-family:inherit}
+  .mgr-study button{margin-top:5px; border:none; background:var(--accent-2); color:#fff; border-radius:7px; padding:5px 12px; font-size:11.5px; font-weight:700; cursor:pointer; font-family:inherit}
+  .mgr-edit{width:100%; min-height:48px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:7px 9px; font-size:13px; font-family:inherit}
+  .mgr-empty{font-size:12.5px; color:var(--faint); padding:6px 0}
+  .mgr-meta select{width:auto !important; flex:0 1 auto; min-width:0; padding:3px 6px; font-size:11px; border-radius:999px}
+  .mgr-form .row select{width:auto !important; flex:1 1 130px}
+  .mgr-form .row button{flex:0 0 auto}
+  .mgr-panel > summary .lock-note{display:block; margin:3px 0 0}
+  .mgr-meta span{flex-basis:100%}
+  body.report-mode .mgr-panel, body.report-mode .mgr-badge, body.report-mode .mgr-nudge{display:none !important}
+  @media print{ .mgr-panel, .mgr-badge, .mgr-nudge{display:none !important} }
+
   /* السجل اليومي */
   .log-day{border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:9px; background:var(--surface)}
   .log-date{font-size:13px; font-weight:800; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:8px}
@@ -388,9 +420,26 @@
     </div>
     <div class="head-tools">
       <div class="live"><span class="dot"></span><span id="liveLabel">—</span></div>
+      <button class="mgr-badge" id="mgrBadge" hidden>🔒 ملاحظاتي</button>
       <button class="preview-btn" id="previewBtn" hidden>👁️ معاينة وضع العرض</button>
     </div>
   </div>
+
+  <div class="mgr-nudge" id="mgrNudge" hidden></div>
+  <details class="panel foldable mgr-panel" id="mgrPanel" hidden>
+    <summary><span id="mgrSummary">🔒 ملاحظات المدير — للتقرير الختامي</span><span class="lock-note">خاصة بك — لا تظهر في التقرير ولا لمن يملك الرابط</span></summary>
+    <div class="fold-body">
+      <div class="mgr-form">
+        <textarea id="mgText" placeholder="ملاحظة تستحق الدراسة في نهاية المشروع…"></textarea>
+        <div class="row">
+          <select id="mgCat"></select>
+          <select id="mgPrio"><option value="high">🔴 أهمية عالية</option><option value="med" selected>🟡 أهمية متوسطة</option></select>
+          <button id="mgAdd">➕ تسجيل</button>
+        </div>
+      </div>
+      <div id="mgrList"></div>
+    </div>
+  </details>
 
   <div class="stack">
     <div class="sec-label sec-zones">🗂️ حالة المسارات الثلاثة</div>
@@ -570,6 +619,126 @@
       if(d.open) openNotes[id] = true; else delete openNotes[id];
     }
   }, true);
+
+  // ===== ملاحظات المدير — مساحة خاصة بحساب المدير فقط =====
+  // تُحفظ تحت data/users/<id>/ : لا يقرؤها غيره حتى لو فتح الرابط، ولا تدخل التقرير الثابت.
+  var MGR_CATS = {
+    safety:{label:"🛡️ السلامة"}, systems:{label:"⚙️ الأنظمة"}, storage:{label:"📦 التخزين والمستودعات"},
+    process:{label:"📋 الإجراءات والعقود"}, other:{label:"📌 أخرى"}
+  };
+  var MGR_STATUS = {
+    "new":{label:"📝 مسجّلة"}, study:{label:"🔍 قيد الدراسة"}, ready:{label:"✅ جاهزة للتقرير"}
+  };
+  var mgrRef = null, mgrNotes = [], mgrDeleting = null, mgrEditing = null, mgrStudyOpen = {};
+  function initMgr(user){
+    if(!db || !user || typeof user.id !== "function") return;
+    user.id().then(function(uid){
+      if(!uid) return;
+      mgrRef = db.collection("data/users/" + uid + "/private/mgrnotes");
+      var catSel = document.getElementById("mgCat");
+      catSel.innerHTML = Object.keys(MGR_CATS).map(function(k){ return '<option value="'+k+'">'+MGR_CATS[k].label+'</option>'; }).join("");
+      document.getElementById("mgrPanel").hidden = false;
+      document.getElementById("mgrBadge").hidden = false;
+      document.getElementById("mgrBadge").addEventListener("click", openMgr);
+      document.getElementById("mgrNudge").addEventListener("click", openMgr);
+      var addBtn = document.getElementById("mgAdd");
+      addBtn.addEventListener("click", function(){ addMgr(addBtn); });
+      mgrRef.onSnapshot(function(snap){
+        mgrNotes = snap.docs.map(function(d){ var x = Object.assign({}, d.data() || {}); x.id = d.id; return x; });
+        renderMgr();
+      }, function(e){ console.error(e); });
+    }).catch(function(e){ console.error(e); });
+  }
+  function openMgr(){
+    var p = document.getElementById("mgrPanel"); p.open = true;
+    p.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+  function addMgr(btn){
+    var t = document.getElementById("mgText").value.trim();
+    if(!t){ flashBtn(btn, "✗ اكتب الملاحظة", false); return; }
+    var now = new Date().toISOString();
+    var id = "mn_" + Date.now().toString(36);
+    flashBtn(btn, "جارٍ الحفظ…", null);
+    mgrRef.doc(id).set({text:t, cat:document.getElementById("mgCat").value, prio:document.getElementById("mgPrio").value,
+                        status:"new", study:"", createdAt:now, updatedAt:now})
+      .then(function(){ document.getElementById("mgText").value = ""; flashBtn(btn, "✓ سُجّلت", true); })
+      .catch(function(e){ console.error(e); flashBtn(btn, "✗ لم تُحفظ", false); });
+  }
+  function patchMgr(id, patch){
+    patch.updatedAt = new Date().toISOString();
+    return mgrRef.doc(id).update(patch);
+  }
+  function mgrItemHtml(n){
+    var editing = mgrEditing === n.id;
+    var st = MGR_STATUS[n.status] || MGR_STATUS["new"];
+    var statusSel = '<select class="mg-status" data-id="'+n.id+'">'+Object.keys(MGR_STATUS).map(function(k){
+      return '<option value="'+k+'"'+(k===(n.status||"new")?' selected':'')+'>'+MGR_STATUS[k].label+'</option>'; }).join("")+'</select>';
+    var catSel = '<select class="mg-cat" data-id="'+n.id+'">'+Object.keys(MGR_CATS).map(function(k){
+      return '<option value="'+k+'"'+(k===n.cat?' selected':'')+'>'+MGR_CATS[k].label+'</option>'; }).join("")+'</select>';
+    var prioSel = '<select class="mg-prio" data-id="'+n.id+'"><option value="high"'+(n.prio==="high"?' selected':'')+'>🔴 عالية</option><option value="med"'+(n.prio!=="high"?' selected':'')+'>🟡 متوسطة</option></select>';
+    return '<div class="mgr-item'+(n.prio==="high"?' high':'')+'">'+
+      '<div class="mgr-top">'+
+        (editing ? '<textarea class="mgr-edit" data-id="'+n.id+'">'+escapeHtml(n.text)+'</textarea>'
+                 : '<div class="mgr-text">'+escapeHtml(n.text)+'</div>')+
+        '<div class="mgr-acts">'+
+          (editing ? '<button class="mg-save" data-id="'+n.id+'">💾 حفظ</button>' : '<button class="mg-edit" data-id="'+n.id+'">✏️</button>')+
+          '<button class="mg-del'+(mgrDeleting===n.id?' confirming':'')+'" data-id="'+n.id+'">'+(mgrDeleting===n.id?'تأكيد؟':'🗑️')+'</button>'+
+        '</div></div>'+
+      '<div class="mgr-meta">'+statusSel+catSel+prioSel+'<span>سُجّلت '+relTime(n.createdAt)+'</span></div>'+
+      '<details class="mgr-study" data-id="'+n.id+'"'+(mgrStudyOpen[n.id]?' open':'')+'><summary>🔍 الدراسة والتوصية'+(n.study?' ✓':'')+'</summary>'+
+        '<textarea class="mg-study-txt" data-id="'+n.id+'" placeholder="الوضع الحالي · المشكلة · التوصية · التكلفة التقديرية…">'+escapeHtml(n.study||"")+'</textarea>'+
+        '<button class="mg-study-save" data-id="'+n.id+'">حفظ الدراسة</button></details>'+
+    '</div>';
+  }
+  function renderMgr(){
+    var box = document.getElementById("mgrList"); if(!box || !mgrRef) return;
+    var ae = document.activeElement;
+    if(ae && (ae.tagName === "TEXTAREA") && box.contains(ae)) return;   // لا تقطع الكتابة
+    var total = mgrNotes.length, ready = mgrNotes.filter(function(n){ return n.status === "ready"; }).length;
+    document.getElementById("mgrSummary").textContent = "🔒 ملاحظات المدير — للتقرير الختامي (" + total + (total ? " · جاهزة " + ready : "") + ")";
+    document.getElementById("mgrBadge").textContent = "🔒 ملاحظاتي " + total;
+    // تذكير مربوط بنسبة الإنجاز — لا بموعد
+    var st = tasks.filter(function(t){ return t.status !== "deferred" && !t.isParent; }), done = st.filter(function(t){ return t.status === "done"; }).length;
+    var pct = st.length ? Math.round(done/st.length*100) : 0;
+    var nudge = document.getElementById("mgrNudge"), pending = total - ready;
+    nudge.hidden = !(pct >= 80 && pending > 0);
+    if(!nudge.hidden) nudge.textContent = "🔔 الإنجاز وصل " + pct + "% — اقترب الإغلاق. ملاحظات تنتظر الدراسة قبل التقرير الختامي: " + pending + " (اضغط للفتح)";
+    if(!total){ box.innerHTML = '<div class="mgr-empty">لا ملاحظات بعد.</div>'; return; }
+    var html = "";
+    Object.keys(MGR_CATS).forEach(function(c){
+      var items = mgrNotes.filter(function(n){ return (MGR_CATS[n.cat] ? n.cat : "other") === c; })
+        .sort(function(a,b){ return (a.prio==="high"?0:1)-(b.prio==="high"?0:1) || String(a.createdAt).localeCompare(String(b.createdAt)); });
+      if(!items.length) return;
+      html += '<div class="mgr-cat">'+MGR_CATS[c].label+' ('+items.length+')</div>' + items.map(mgrItemHtml).join("");
+    });
+    box.innerHTML = html;
+    function on(sel, ev, fn){ Array.prototype.forEach.call(box.querySelectorAll(sel), function(el){ el.addEventListener(ev, function(){ fn(el, el.getAttribute("data-id")); }); }); }
+    on(".mg-status", "change", function(el,id){ patchMgr(id, {status:el.value}); });
+    on(".mg-cat", "change", function(el,id){ patchMgr(id, {cat:el.value}); });
+    on(".mg-prio", "change", function(el,id){ patchMgr(id, {prio:el.value}); });
+    on(".mg-edit", "click", function(el,id){ mgrEditing = id; renderMgr(); var t = box.querySelector('.mgr-edit'); if(t) t.focus(); });
+    on(".mg-save", "click", function(el,id){
+      var t = box.querySelector('.mgr-edit[data-id="'+id+'"]'); var v = t ? t.value.trim() : "";
+      if(!v) return; mgrEditing = null; if(t) t.blur();
+      patchMgr(id, {text:v}).catch(function(e){ console.error(e); }); renderMgr();
+    });
+    on(".mg-del", "click", function(el,id){
+      if(mgrDeleting !== id){ mgrDeleting = id; renderMgr(); setTimeout(function(){ if(mgrDeleting===id){ mgrDeleting=null; renderMgr(); } }, 4000); return; }
+      mgrDeleting = null; mgrRef.doc(id).delete().catch(function(e){ console.error(e); });
+    });
+    on(".mg-study-save", "click", function(el,id){
+      var t = box.querySelector('.mg-study-txt[data-id="'+id+'"]');
+      flashBtn(el, "جارٍ الحفظ…", null);
+      var n = mgrNotes.filter(function(x){ return x.id === id; })[0] || {};
+      var patch = {study:t.value.trim()};
+      if(patch.study && (n.status||"new") === "new") patch.status = "study";
+      t.blur();
+      patchMgr(id, patch).then(function(){ flashBtn(el, "✓ تم الحفظ", true); }).catch(function(e){ console.error(e); flashBtn(el, "✗ لم يُحفظ", false); });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll(".mgr-study"), function(d){
+      d.addEventListener("toggle", function(){ var id = d.getAttribute("data-id"); if(d.open) mgrStudyOpen[id] = true; else delete mgrStudyOpen[id]; });
+    });
+  }
 
   // ===== السجل اليومي =====
   var logDeleting = null;
@@ -881,6 +1050,7 @@
     els.tTotal.textContent = total;
     els.tDone.textContent = statusCounts.done;
     els.tPct.textContent = total ? Math.round((statusCounts.done/total)*100)+"%" : "0%";
+    if(mgrRef) renderMgr();
 
     renderBars(els.chartStatus, statusCounts, ["done","progress","pending","late"],
       function(k){return STATUS[k].color;}, function(k){return STATUS[k].icon+" "+STATUS[k].label;});
@@ -1275,6 +1445,7 @@
         lockToReport();
       } else {
         if(reportMode) document.body.classList.add("report-mode");
+        initMgr(user);
         els.previewBtn.hidden = false;
         els.previewBtn.textContent = reportMode ? "↩︎ رجوع لوضع الإدارة" : "👁️ معاينة وضع العرض";
         els.previewBtn.addEventListener("click", function(){
