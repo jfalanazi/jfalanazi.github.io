@@ -124,7 +124,40 @@
   .foldable[open] > summary{color:var(--text); padding-bottom:4px}
   .foldable > summary:hover{color:var(--text)}
   .fold-body{padding:0 16px 14px}
-  @media print{ .foldable > summary::after{display:none} .fold-body{display:block !important} }
+
+  /* ملاحظات المهمة — مطوية افتراضيًا */
+  .notes-wrap > summary{list-style:none; cursor:pointer; user-select:none; font-size:11.5px; font-weight:700; color:var(--muted); display:inline-flex; align-items:center; gap:6px; padding:2px 0}
+  .notes-wrap > summary::-webkit-details-marker{display:none}
+  .notes-wrap > summary::after{content:""; width:6px; height:6px; border-right:1.8px solid currentColor; border-bottom:1.8px solid currentColor; transform:rotate(45deg) translate(-1px,-1px); transition:transform .15s}
+  .notes-wrap[open] > summary::after{transform:rotate(-135deg) translate(-1px,-1px)}
+  .notes-wrap > summary:hover{color:var(--text)}
+  .notes-wrap .warn-dot{color:var(--warning)}
+  .notes-wrap .notes{margin-top:6px}
+
+  /* السجل اليومي */
+  .log-day{border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:9px; background:var(--surface)}
+  .log-date{font-size:13px; font-weight:800; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:8px}
+  .log-line{font-size:12px; color:var(--muted); line-height:1.8}
+  .log-line b{color:var(--text)}
+  .log-teams{margin:0 0 2px; padding-right:18px; font-size:12px; color:var(--text); line-height:1.8; list-style:"👷 "}
+  .log-sub{font-size:11px; color:var(--faint); font-weight:700; margin-top:4px}
+  .log-done{margin:4px 0 6px; padding-right:18px; font-size:12.5px; line-height:1.85}
+  .log-acts{display:flex; gap:6px}
+  .log-acts button{border:1px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:7px; padding:3px 9px; font-size:11px; cursor:pointer; font-family:inherit}
+  .log-acts .confirming{border-color:var(--critical); color:var(--critical)}
+  .log-older > summary{cursor:pointer; font-size:12px; font-weight:700; color:var(--accent-2); margin:4px 0 8px}
+  .log-form{border-top:1px dashed var(--border); padding-top:10px; margin-top:6px; display:grid; gap:7px}
+  .log-form h4{font-size:12.5px; font-weight:800}
+  .log-form label{font-size:11.5px; color:var(--muted); display:grid; gap:3px}
+  .log-form input, .log-form textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:7px 9px; font-size:12.5px; font-family:inherit}
+  .log-form textarea{min-height:84px; resize:vertical}
+  .log-form .row2{display:grid; grid-template-columns:1fr 1fr; gap:7px}
+  .log-form .acts{display:flex; gap:7px}
+  .log-form .acts button{border:none; background:var(--accent-2); color:#fff; border-radius:7px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit}
+  .log-form .acts .ghost{background:var(--surface-2); color:var(--text); border:1px solid var(--border)}
+  body.report-mode .log-form, body.report-mode .log-acts{display:none}
+  .log-empty{font-size:12.5px; color:var(--faint); padding:4px 0 8px}
+  @media print{ .foldable > summary::after{display:none} .fold-body{display:block !important} .notes-wrap > summary::after{display:none} }
   .bar-row{display:flex; align-items:center; gap:8px; margin:7px 0; font-size:12px}
   .bar-row .lbl{width:118px; flex:0 0 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .bar-track{flex:1; height:9px; background:var(--grid); border-radius:5px; overflow:hidden; min-width:0}
@@ -264,7 +297,7 @@
     .header{break-after:avoid}
     .task{box-shadow:none}
   }
-  .notes{font-size:12.5px; color:var(--muted); border-top:1px dashed var(--border); padding-top:7px}
+  .notes{font-size:12.5px; color:var(--muted); border-top:1px dashed var(--border); padding-top:7px; white-space:pre-line; line-height:1.75}
   /* ====== مجموعات: مهمة أم وتحتها فروع ====== */
   .group{border:1px solid var(--border); border-radius:12px; background:var(--surface); margin-bottom:12px; overflow:hidden}
   .group.zone-a{border-right:4px solid var(--zoneA)}
@@ -311,6 +344,7 @@
     .stack > .sec-tiles     {order:2}
     .stack > .tiles         {order:3}
     .stack > .gantt-panel   {order:4}
+    .stack > .log-panel     {order:4}
     .stack > .sec-zones     {order:5}
     .stack > .zones         {order:6}
     .stack > .charts        {order:7}
@@ -400,6 +434,24 @@
       <div id="ganttChart"></div>
       <div class="sched" id="schedHealth"></div>
     </div>
+
+    <details class="panel foldable log-panel" id="logPanel">
+      <summary id="logSummary">📅 السجل اليومي</summary>
+      <div class="fold-body">
+        <div id="dailyLog"></div>
+        <div class="log-form" id="logForm">
+          <h4 id="logFormTitle">➕ تسجيل يوم عمل</h4>
+          <div class="row2">
+            <label>التاريخ<input type="date" id="lgDate"></label>
+            <label>انتهاء العمل<input type="text" id="lgEnd" placeholder="مثال: 6:45 م"></label>
+          </div>
+          <label>الفرق الحاضرة — افصل بينها بـ · أو سطر جديد<input type="text" id="lgTeams" placeholder="مثال: شركة تنظيف الأرضيات (8:30 ص) · شركة تنظيف مجاري الهواء (9:00 ص)"></label>
+          <label>المنجز اليوم — كل بند في سطر<textarea id="lgDone"></textarea></label>
+          <label>الاستئناف<input type="text" id="lgNext" placeholder="مثال: الخميس 12 نوفمبر — 8:00 ص"></label>
+          <div class="acts"><button id="lgSave">حفظ اليوم</button><button class="ghost" id="lgReset">تفريغ</button></div>
+        </div>
+      </div>
+    </details>
 
     <div class="charts">
       <details class="panel foldable">
@@ -509,6 +561,113 @@
   var zoneTargets = {a:2, c:2, b:10, final:2};
   var zoneSummaries = {a:"", c:"", b:""};
   var schedule = {};          // {groupId:{start,end}} بالأيام من بداية الحادثة
+  var dailyLog = {};          // {"YYYY-MM-DD": {teams, done:[...], end, next}}
+  var openNotes = {};         // ملاحظات فتحها المستخدم — تبقى مفتوحة بعد إعادة الرسم
+  document.addEventListener("toggle", function(e){
+    var d = e.target;
+    if(d && d.classList && d.classList.contains("notes-wrap")){
+      var id = d.getAttribute("data-id");
+      if(d.open) openNotes[id] = true; else delete openNotes[id];
+    }
+  }, true);
+
+  // ===== السجل اليومي =====
+  var logDeleting = null;
+  function dayLabel(key){
+    try {
+      return new Date(key + "T12:00:00Z").toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",
+        {weekday:"long", day:"numeric", month:"long"});
+    } catch(e){ return key; }
+  }
+  function todayKey(){
+    try { return new Date().toLocaleDateString("en-CA", {timeZone:"Asia/Riyadh"}); }
+    catch(e){ return new Date().toISOString().slice(0,10); }
+  }
+  function logDayHtml(key){
+    var d = dailyLog[key] || {};
+    var done = Array.isArray(d.done) ? d.done : String(d.done||"").split("\n");
+    done = done.map(function(s){ return String(s).trim(); }).filter(Boolean);
+    var teams = String(d.teams||"").split(/\s*[·•|]\s*|\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var tail = [];
+    if(d.end) tail.push('🕕 انتهى العمل: <b>'+escapeHtml(d.end)+'</b>');
+    if(d.next) tail.push('▶️ الاستئناف: <b>'+escapeHtml(d.next)+'</b>');
+    return '<div class="log-day">'+
+      '<div class="log-date"><span>'+escapeHtml(dayLabel(key))+'</span>'+
+        '<span class="log-acts"><button class="lg-edit" data-k="'+key+'">✏️ تعديل</button>'+
+        '<button class="lg-del'+(logDeleting===key?' confirming':'')+'" data-k="'+key+'">'+(logDeleting===key?'تأكيد الحذف؟':'🗑️')+'</button></span></div>'+
+      (teams.length ? '<div class="log-sub">الفرق الحاضرة</div><ul class="log-teams">'+teams.map(function(s){ return '<li>'+escapeHtml(s)+'</li>'; }).join("")+'</ul>' : '')+
+      (done.length ? '<div class="log-sub">المنجز</div><ul class="log-done">'+done.map(function(s){ return '<li>'+escapeHtml(s)+'</li>'; }).join("")+'</ul>' : '')+
+      tail.map(function(s){ return '<div class="log-line">'+s+'</div>'; }).join("")+
+    '</div>';
+  }
+  function renderLog(){
+    var box = document.getElementById("dailyLog"); if(!box) return;
+    var keys = Object.keys(dailyLog).filter(function(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }).sort().reverse();
+    var sum = document.getElementById("logSummary");
+    if(sum) sum.textContent = keys.length ? "📅 السجل اليومي — آخر يوم: " + dayLabel(keys[0]) : "📅 السجل اليومي";
+    var panel = document.getElementById("logPanel");
+    if(panel) panel.hidden = !keys.length && document.body.classList.contains("report-mode");
+    if(!keys.length){ box.innerHTML = '<div class="log-empty">لم يُسجَّل أي يوم بعد.</div>'; }
+    else {
+      var recent = keys.slice(0,3), older = keys.slice(3);
+      box.innerHTML = recent.map(logDayHtml).join("") +
+        (older.length ? '<details class="log-older"><summary>الأيام السابقة ('+older.length+')</summary>'+older.map(logDayHtml).join("")+'</details>' : '');
+    }
+    Array.prototype.forEach.call(box.querySelectorAll(".lg-edit"), function(b){
+      b.addEventListener("click", function(){ fillLogForm(b.getAttribute("data-k")); });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll(".lg-del"), function(b){
+      b.addEventListener("click", function(){ deleteLogDay(b.getAttribute("data-k")); });
+    });
+  }
+  function fillLogForm(key){
+    var d = dailyLog[key] || {};
+    document.getElementById("lgDate").value = key;
+    document.getElementById("lgTeams").value = d.teams || "";
+    document.getElementById("lgDone").value = (Array.isArray(d.done) ? d.done : [d.done||""]).join("\n");
+    document.getElementById("lgEnd").value = d.end || "";
+    document.getElementById("lgNext").value = d.next || "";
+    document.getElementById("logFormTitle").textContent = "✏️ تعديل يوم " + dayLabel(key);
+    document.getElementById("logForm").scrollIntoView({behavior:"smooth", block:"center"});
+  }
+  function resetLogForm(){
+    document.getElementById("lgDate").value = todayKey();
+    ["lgTeams","lgDone","lgEnd","lgNext"].forEach(function(id){ document.getElementById(id).value = ""; });
+    document.getElementById("logFormTitle").textContent = "➕ تسجيل يوم عمل";
+  }
+  function saveLogDay(btn){
+    if(!db){ flashBtn(btn, "✗ لا يوجد اتصال", false); return; }
+    var key = document.getElementById("lgDate").value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(key)){ flashBtn(btn, "✗ اختر التاريخ", false); return; }
+    var done = document.getElementById("lgDone").value.split("\n").map(function(s){ return s.replace(/^[\s•\-–·*]+/,"").trim(); }).filter(Boolean);
+    var entry = {
+      teams: document.getElementById("lgTeams").value.trim(),
+      done: done,
+      end: document.getElementById("lgEnd").value.trim(),
+      next: document.getElementById("lgNext").value.trim()
+    };
+    if(!entry.teams && !done.length){ flashBtn(btn, "✗ أدخل الفرق أو المنجز", false); return; }
+    var next = Object.assign({}, dailyLog); next[key] = entry;
+    flashBtn(btn, "جارٍ الحفظ…", null);
+    db.doc("meta/dailylog").set(next)
+      .then(function(){ dailyLog = next; renderLog(); resetLogForm(); flashBtn(btn, "✓ تم الحفظ", true); })
+      .catch(function(e){ handleWriteError(e); flashBtn(btn, isPermissionError(e) ? "✗ لا تملك صلاحية" : "✗ لم يُحفظ", false); });
+  }
+  function deleteLogDay(key){
+    if(logDeleting !== key){ logDeleting = key; renderLog(); setTimeout(function(){ if(logDeleting===key){ logDeleting=null; renderLog(); } }, 4000); return; }
+    logDeleting = null;
+    if(!db) return;
+    var next = Object.assign({}, dailyLog); delete next[key];
+    db.doc("meta/dailylog").set(next)
+      .then(function(){ dailyLog = next; renderLog(); })
+      .catch(function(e){ handleWriteError(e); renderLog(); });
+  }
+  (function(){
+    var s = document.getElementById("lgSave"), r = document.getElementById("lgReset");
+    if(s) s.addEventListener("click", function(){ saveLogDay(s); });
+    if(r) r.addEventListener("click", resetLogForm);
+    var d = document.getElementById("lgDate"); if(d && !d.value) d.value = todayKey();
+  })();
   var db = null;
 
   // ===== الجدول الزمني للمجموعات وصحته =====
@@ -563,7 +722,7 @@
     var reopened = [];
     window.addEventListener("beforeprint", function(){
       reopened = [];
-      document.querySelectorAll("details.foldable:not([open])").forEach(function(d){
+      document.querySelectorAll("details.foldable:not([open]), details.notes-wrap:not([open]), details.log-older:not([open])").forEach(function(d){
         d.open = true; reopened.push(d);
       });
     });
@@ -988,7 +1147,9 @@
       '<div class="task-top-actions">'+statusHtml+actionsHtml+'</div></div>'+
       '<div class="task-meta"><span class="pill">'+zn.label+'</span><span class="pill">'+tm.label+'</span>'+
       '<span class="prio '+pr.cls+'">'+pr.icon+' '+pr.label+'</span><span class="age">أُضيفت '+relTime(t.createdAt)+'</span></div>'+
-      (t.notes?'<div class="notes">'+escapeHtml(t.notes)+'</div>':'')+'</div>';
+      (t.notes?'<details class="notes-wrap" data-id="'+t.id+'"'+(openNotes[t.id]?' open':'')+'><summary>📝 ملاحظات'+
+        (t.notes.indexOf("⚠️")>-1?' <span class="warn-dot">⚠️ تنبيه</span>':'')+'</summary>'+
+        '<div class="notes">'+escapeHtml(t.notes)+'</div></details>':'')+'</div>';
   }
 
   var ZONE_ORDER = ["a","c","b","building"];
@@ -1152,6 +1313,11 @@
           db.doc("meta/zones").set(Object.assign({}, zoneTargets)).catch(function(){});
         }
         renderCountdowns();
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/dailylog").onSnapshot(function(snap){
+        dailyLog = snap.exists ? (snap.data() || {}) : {};
+        renderLog();
       }, function(e){ console.error(e); });
 
       db.doc("meta/schedule").onSnapshot(function(snap){

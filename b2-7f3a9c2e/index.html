@@ -132,7 +132,40 @@
   .foldable[open] > summary{color:var(--text); padding-bottom:4px}
   .foldable > summary:hover{color:var(--text)}
   .fold-body{padding:0 16px 14px}
-  @media print{ .foldable > summary::after{display:none} .fold-body{display:block !important} }
+
+  /* ملاحظات المهمة — مطوية افتراضيًا */
+  .notes-wrap > summary{list-style:none; cursor:pointer; user-select:none; font-size:11.5px; font-weight:700; color:var(--muted); display:inline-flex; align-items:center; gap:6px; padding:2px 0}
+  .notes-wrap > summary::-webkit-details-marker{display:none}
+  .notes-wrap > summary::after{content:""; width:6px; height:6px; border-right:1.8px solid currentColor; border-bottom:1.8px solid currentColor; transform:rotate(45deg) translate(-1px,-1px); transition:transform .15s}
+  .notes-wrap[open] > summary::after{transform:rotate(-135deg) translate(-1px,-1px)}
+  .notes-wrap > summary:hover{color:var(--text)}
+  .notes-wrap .warn-dot{color:var(--warning)}
+  .notes-wrap .notes{margin-top:6px}
+
+  /* السجل اليومي */
+  .log-day{border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:9px; background:var(--surface)}
+  .log-date{font-size:13px; font-weight:800; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:8px}
+  .log-line{font-size:12px; color:var(--muted); line-height:1.8}
+  .log-line b{color:var(--text)}
+  .log-teams{margin:0 0 2px; padding-right:18px; font-size:12px; color:var(--text); line-height:1.8; list-style:"👷 "}
+  .log-sub{font-size:11px; color:var(--faint); font-weight:700; margin-top:4px}
+  .log-done{margin:4px 0 6px; padding-right:18px; font-size:12.5px; line-height:1.85}
+  .log-acts{display:flex; gap:6px}
+  .log-acts button{border:1px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:7px; padding:3px 9px; font-size:11px; cursor:pointer; font-family:inherit}
+  .log-acts .confirming{border-color:var(--critical); color:var(--critical)}
+  .log-older > summary{cursor:pointer; font-size:12px; font-weight:700; color:var(--accent-2); margin:4px 0 8px}
+  .log-form{border-top:1px dashed var(--border); padding-top:10px; margin-top:6px; display:grid; gap:7px}
+  .log-form h4{font-size:12.5px; font-weight:800}
+  .log-form label{font-size:11.5px; color:var(--muted); display:grid; gap:3px}
+  .log-form input, .log-form textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:7px 9px; font-size:12.5px; font-family:inherit}
+  .log-form textarea{min-height:84px; resize:vertical}
+  .log-form .row2{display:grid; grid-template-columns:1fr 1fr; gap:7px}
+  .log-form .acts{display:flex; gap:7px}
+  .log-form .acts button{border:none; background:var(--accent-2); color:#fff; border-radius:7px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit}
+  .log-form .acts .ghost{background:var(--surface-2); color:var(--text); border:1px solid var(--border)}
+  body.report-mode .log-form, body.report-mode .log-acts{display:none}
+  .log-empty{font-size:12.5px; color:var(--faint); padding:4px 0 8px}
+  @media print{ .foldable > summary::after{display:none} .fold-body{display:block !important} .notes-wrap > summary::after{display:none} }
   .bar-row{display:flex; align-items:center; gap:8px; margin:7px 0; font-size:12px}
   .bar-row .lbl{width:118px; flex:0 0 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .bar-track{flex:1; height:9px; background:var(--grid); border-radius:5px; overflow:hidden; min-width:0}
@@ -272,7 +305,7 @@
     .header{break-after:avoid}
     .task{box-shadow:none}
   }
-  .notes{font-size:12.5px; color:var(--muted); border-top:1px dashed var(--border); padding-top:7px}
+  .notes{font-size:12.5px; color:var(--muted); border-top:1px dashed var(--border); padding-top:7px; white-space:pre-line; line-height:1.75}
   /* ====== مجموعات: مهمة أم وتحتها فروع ====== */
   .group{border:1px solid var(--border); border-radius:12px; background:var(--surface); margin-bottom:12px; overflow:hidden}
   .group.zone-a{border-right:4px solid var(--zoneA)}
@@ -319,6 +352,7 @@
     .stack > .sec-tiles     {order:2}
     .stack > .tiles         {order:3}
     .stack > .gantt-panel   {order:4}
+    .stack > .log-panel     {order:4}
     .stack > .sec-zones     {order:5}
     .stack > .zones         {order:6}
     .stack > .charts        {order:7}
@@ -354,7 +388,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap">
 
 <div class="wrap">
-  <div class="report-banner">📄 تقرير معالجة آثار الحريق — آخر تحديث: الأربعاء، 11 نوفمبر 2026 في 8:36 م</div>
+  <div class="report-banner">📄 تقرير معالجة آثار الحريق — آخر تحديث: الأربعاء، 11 نوفمبر 2026 في 9:13 م</div>
   <div class="header">
     <div>
       <h1>📄 تقرير معالجة آثار حريق — مبنى 2</h1>
@@ -408,6 +442,24 @@
       <div id="ganttChart"></div>
       <div class="sched" id="schedHealth"></div>
     </div>
+
+    <details class="panel foldable log-panel" id="logPanel">
+      <summary id="logSummary">📅 السجل اليومي</summary>
+      <div class="fold-body">
+        <div id="dailyLog"></div>
+        <div class="log-form" id="logForm">
+          <h4 id="logFormTitle">➕ تسجيل يوم عمل</h4>
+          <div class="row2">
+            <label>التاريخ<input type="date" id="lgDate"></label>
+            <label>انتهاء العمل<input type="text" id="lgEnd" placeholder="مثال: 6:45 م"></label>
+          </div>
+          <label>الفرق الحاضرة — افصل بينها بـ · أو سطر جديد<input type="text" id="lgTeams" placeholder="مثال: شركة تنظيف الأرضيات (8:30 ص) · شركة تنظيف مجاري الهواء (9:00 ص)"></label>
+          <label>المنجز اليوم — كل بند في سطر<textarea id="lgDone"></textarea></label>
+          <label>الاستئناف<input type="text" id="lgNext" placeholder="مثال: الخميس 12 نوفمبر — 8:00 ص"></label>
+          <div class="acts"><button id="lgSave">حفظ اليوم</button><button class="ghost" id="lgReset">تفريغ</button></div>
+        </div>
+      </div>
+    </details>
 
     <div class="charts">
       <details class="panel foldable">
@@ -479,7 +531,7 @@
 
   /* ====== بيانات مجمّدة — تُولَّد آليًا، لا تُحرَّر يدويًا ====== */
   /* ==DATA_START== */
-  var FROZEN_DATA = {"tasks":[{"id":"46fj875eahgigzzihk7i","createdAt":"2026-11-10T12:26:58.703Z","description":"اصلاح ورق جدران ومعالجة السقف المتضرر في منطقه الحريق","gate":false,"notes":"تغيير كامل السقف المستعار المتضرر\nجدول الغد: غسيل عميق للجدران مع تكسير الورق القديم وتحضير الورق الجديد\n⚠️ التكسير مولِّد للغبار — يسبق تنظيف الأثاث والثريات ولا يوازيه","parentId":"grp_fire","priority":"medium","status":"progress","team":"maint","updatedAt":"2026-11-11T17:31:53.311Z","zone":"a"},{"id":"8titlaaqpwxwoxrxp4vf","createdAt":"2026-11-10T12:31:53.825Z","description":"تشغيل تجريبي لنظام الفاير - معاينه الاضرار والتصليح","gate":false,"notes":"","parentId":"grp_commission","priority":"medium","status":"pending","team":"maint","zone":"a"},{"id":"9xr8tcp5jzvvual72fim","createdAt":"2026-11-10T12:31:14.678Z","description":"تشغيل تجريبي لنظام قلب الهواء ونظام التبريد شيلر","gate":false,"notes":"بالطابق الارضي والقبو","parentId":"grp_commission","priority":"medium","status":"pending","team":"maint","zone":"a"},{"id":"grp_clean","createdAt":"2026-11-10T19:30:02.000Z","description":"🧹 التنظيف والتجهيز","gate":false,"isParent":true,"notes":"","orderIdx":3,"priority":"medium","status":"progress","team":"cleaning","zone":"b"},{"id":"grp_commission","createdAt":"2026-11-10T19:30:01.000Z","description":"⚙️ التشغيل التجريبي للأنظمة","gate":false,"isParent":true,"notes":"","orderIdx":2,"priority":"urgent","status":"progress","team":"maint","zone":"c"},{"id":"grp_final","createdAt":"2026-11-10T19:30:03.000Z","description":"🏁 الأعمال النهائية","gate":false,"isParent":true,"notes":"","orderIdx":4,"priority":"normal","status":"pending","team":"maint","zone":"building"},{"id":"grp_fire","createdAt":"2026-11-10T19:30:00.000Z","description":"🔧 إعادة تأهيل منطقة الحريق","gate":false,"isParent":true,"notes":"","orderIdx":1,"priority":"urgent","status":"progress","team":"maint","zone":"a"},{"id":"hof15dhohl11w09v7ybn","createdAt":"2026-11-10T12:29:47.318Z","description":"أضرار غرفة التبريد بالمطبخ الرئيسي واستبدال الوحدات الخارجية المتضررة","gate":false,"notes":"بانتضار الموافقة من شركه التأمين","parentId":"grp_commission","priority":"medium","status":"progress","team":"maint","updatedAt":"2026-11-10T20:43:51.735Z","zone":"b"},{"id":"i2hwaeiicgw0v4ilblxt","createdAt":"2026-11-10T12:27:52.547Z","description":"إصلاح دهان الطابقين الأرضي والأول","gate":true,"notes":"الأعمال النهائية — تأتي بالمرحلة الأخيرة من الأعمال","parentId":"grp_final","priority":"medium","status":"pending","team":"maint","zone":"b"},{"id":"ijd3lh26sj6hbdhluf1z","createdAt":"2026-11-10T08:30:23.980Z","description":"التأكد من تشغيل جميع الانظمة","gate":false,"notes":"مطلوب اختبار لكل نظام \nالتبريد، الشفط، التكييف، التسخين ، الري ، مولد الكهرباء  وجميع الانظمة الاخرى","parentId":"grp_commission","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-10T08:37:25.132Z","zone":"c"},{"id":"new_duct_removal","createdAt":"2026-11-10T19:30:10.000Z","description":"إزالة نظام الدكت بالكامل من مكان الحريق","gate":false,"notes":"مجدولة غدًا. ⚠️ يجب أن تسبق تنظيف الدكت المركزي أو يُعزل الجزءان هوائيًا — تفكيك دكت محمّل بالسخام يلوّث ما نُظِّف.","parentId":"grp_fire","priority":"urgent","status":"done","team":"maint","updatedAt":"2026-11-10T20:45:59.066Z","zone":"a"},{"id":"new_furniture_clean","createdAt":"2026-11-10T19:30:11.000Z","description":"تنظيف الأثاث والثريات والأرضيات والخشب والموكيت","gate":false,"notes":"يبدأ غدًا — فريق متخصص من شركة خارجية. ⚠️ يُفضّل بعد اكتمال تنظيف الدكت","parentId":"grp_clean","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-11T17:30:23.725Z","zone":"b"},{"id":"seed_a1","createdAt":"2026-11-09T13:44:00.000Z","description":"فحص بصري شامل من فني كهرباء مختص للوحة والكابلات المتضررة","gate":true,"notes":"","parentId":"grp_fire","priority":"urgent","status":"done","team":"maint","updatedAt":"2026-11-09T21:37:48.068Z","zone":"a"},{"id":"seed_a2","createdAt":"2026-11-09T13:44:01.000Z","description":"فحص تشغيل الانظمة المتعطله بمنطقه الحريق","gate":true,"notes":"لا يُعاد تشغيل أي نظام متعطل قبل الفحص\nإعادة التمديدات الكهربائية وإصلاحها · نظام التبريد والثلاجات · نظام الإنارة في الزون المتضرر · نظام التدفئة · نظام الري · نظام الفاير\n📍 تشغيل جزئي لكهرباء المبنى (10 نوفمبر)","parentId":"grp_fire","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-10T12:28:57.821Z","zone":"a"},{"id":"seed_a3","createdAt":"2026-11-09T13:44:02.000Z","description":"إصلاح/إعادة عزل الكابلات التالفة فعليًا","gate":false,"notes":"جدول الغد: تثبيت الكابلات والبدء بالتوصيل · فريق MMG إضافي متخصص لتسريع الكهرباء والسباكة\n⚠️ لا تُغذَّى أي دائرة قبل إيقاف تسريبات المياه وتجفيف المنطقة واعتماد الفحص","parentId":"grp_fire","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-09T22:24:18.229Z","zone":"a"},{"id":"seed_b1","createdAt":"2026-11-09T13:44:13.000Z","description":"فحص وتنظيف الدكت المركزي بالكامل","gate":true,"notes":"جدول الغد: duct cleaning من الصباح الباكر — فريق كامل من شركة Boecker\n⚠️ إزالة دكت منطقة الحريق يجب أن تسبق هذا التنظيف أو يُعزل الجزءان هوائيًا","parentId":"grp_clean","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-09T21:53:19.035Z","zone":"b"},{"id":"seed_b2","createdAt":"2026-11-09T13:44:14.000Z","description":"تنظيف اثار الدخان من الأسطح والجدران بكل الطوابق المتأثرة","gate":false,"notes":"","parentId":"grp_clean","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-09T22:21:24.665Z","zone":"b"},{"id":"seed_b3","createdAt":"2026-11-09T13:44:15.000Z","description":"معالجة رائحة الدخان","gate":false,"notes":"تم انجاز 90% تقريبا","parentId":"grp_clean","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-11T17:31:27.840Z","zone":"b"},{"id":"seed_c4","createdAt":"2026-11-09T13:44:09.000Z","description":"تشغيل مؤقت لنظام الكميرات (تمديدات)","gate":false,"notes":"📍 تم تشغيل جميع الكاميرات (10 نوفمبر)","parentId":"grp_commission","priority":"urgent","status":"done","team":"maint","updatedAt":"2026-11-10T20:39:44.668Z","zone":"c"},{"id":"seed_c5","createdAt":"2026-11-09T13:44:10.000Z","description":"تشغيل تجريبي لنظام الري","gate":false,"notes":"","parentId":"grp_commission","priority":"medium","status":"progress","team":"maint","updatedAt":"2026-11-10T20:42:42.731Z","zone":"c"},{"id":"seed_p1_1","createdAt":"2026-11-09T16:42:00.000Z","description":"توثيق مصوّر شامل لتقييم الأضرار (كل المناطق)","gate":false,"notes":"قيد التنفيذ","priority":"urgent","status":"done","team":"cleaning","updatedAt":"2026-11-10T20:30:00.000Z","zone":"building"},{"id":"seed_p2_1","createdAt":"2026-11-09T16:42:01.000Z","description":"إتلاف والتخلص النهائي من مخلفات الأثاث المحترق","gate":false,"notes":"مجدولة غدًا الصباح","parentId":"grp_fire","priority":"urgent","status":"done","team":"cleaning","updatedAt":"2026-11-09T21:38:49.967Z","zone":"a"},{"id":"seed_p4_1","createdAt":"2026-11-09T16:42:02.000Z","description":"فحص وإصلاح مواسير المياه المتضررة بالطوابق العليا","gate":false,"notes":"اكتُشفت أثناء التقييم — يوجد تهريب مياه بأكثر من موقع\nجدول الغد: تصليح مشاكل السنكرية والمواسير الخاصة بنظام التدفئة\n⚠️ شرط سابق لإعادة التغذية الكهربائية في المنطقة نفسها","parentId":"grp_fire","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-10T08:27:54.526Z","zone":"a"},{"id":"seed_p6_1","createdAt":"2026-11-09T16:42:04.000Z","description":"إزالة الستائر والسجاد، حصرها وترقيمها، قبل تسليمها للغسيل","gate":false,"notes":"البدء فوري بالتوازي — لا ينتظر شي","parentId":"grp_clean","priority":"medium","status":"done","team":"cleaning","updatedAt":"2026-11-11T17:30:01.618Z","zone":"b"},{"id":"seed_p7_1","createdAt":"2026-11-09T16:42:06.000Z","description":"نقل الأثاث القابل للتنظيف (كنب/لوحات) لمنطقة خارجية مؤقتة","gate":false,"notes":"البدء فوري بالتوازي","parentId":"grp_clean","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-09T22:18:13.476Z","zone":"b"},{"id":"seed_p8_1","createdAt":"2026-11-09T16:42:08.000Z","description":"غسيل ودهان المبنى بالكامل + إعادة تركيب الستائر/السجاد/الأثاث + تشغيل تجريبي نهائي شامل","gate":false,"notes":"⏳ ينتظر: اكتمال كل مهام منطقة أ + الأنظمة التشغيلية + تنظيف الدكت — هذه الخطوة هي المسار الحرج النهائي لكل المشروع","parentId":"grp_final","priority":"urgent","status":"deferred","team":"maint","updatedAt":"2026-11-09T22:17:53.706Z","zone":"building"}],"meta":{"gates":{"civilDefense":true,"ductCleaning":false,"electricalSafety":false,"fireAlarmCert":false},"incident":{"startedAt":"2026-11-09T11:49:00.000Z","targetDays":7},"owners":{"a":"","b":"","c":"عماد"},"schedule":{},"summaries":{"a":"اكتمل: الفحص البصري للوحة والكابلات، وإتلاف مخلفات الأثاث المحترق. \nجارٍ: فحص تشغيل الأنظمة المتعطلة، إعادة عزل الكابلات التالفة، وإصلاح مواسير المياه بالطوابق العليا.\n تسلسل إلزامي: إنهاء إصلاح المواسير وتجفيف المنطقة قبل إعادة تغذية أي دائرة كهربائية.","b":"المهام طويلة ومفتوحة، والعمل يسير بالتوازي دون انتظار.\nجارٍ: تنظيف آثار الدخان من الأسطح والجدران، معالجة الرائحة، إزالة وترقيم الستائر والسجاد، ونقل الأثاث القابل للتنظيف. \nالمتطلب: الدكت المركزي — الخريطة ارسلت والتنظيف الفعلي الصباح.","c":"جارٍ: تشغيل مؤقت لنظام الكاميرات لاستعادة التغطية الأمنية. الري والتكييف/التسخين المركزي موقوفان بانتظار اعتماد الدائرة الكهربائية من منطقة الحريق"},"zones":{"a":2,"b":6,"c":2}},"generatedAt":"2026-11-11T17:36:06.658Z"};
+  var FROZEN_DATA = {"tasks":[{"id":"46fj875eahgigzzihk7i","createdAt":"2026-11-10T12:26:58.703Z","description":"اصلاح ورق جدران ومعالجة السقف المتضرر في منطقه الحريق","gate":false,"notes":"تغيير كامل السقف المستعار المتضرر\n📍 11 نوفمبر: غُسل الموقع المتضرر بالكامل بمعدات متخصصة، وبدأ فريق مختص إصلاح الجدار والسقف\n⚠️ التكسير مولِّد للغبار — يسبق تنظيف الأثاث والثريات ولا يوازيه","parentId":"grp_fire","priority":"medium","status":"progress","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"a"},{"id":"8titlaaqpwxwoxrxp4vf","createdAt":"2026-11-10T12:31:53.825Z","description":"تشغيل تجريبي لنظام إنذار وإطفاء الحريق - معاينة الأضرار والتصليح","gate":false,"notes":"","parentId":"grp_commission","priority":"medium","status":"pending","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"a"},{"id":"9xr8tcp5jzvvual72fim","createdAt":"2026-11-10T12:31:14.678Z","description":"تشغيل تجريبي لنظام قلب الهواء ونظام التبريد شيلر","gate":false,"notes":"بالطابق الارضي والقبو","parentId":"grp_commission","priority":"medium","status":"pending","team":"maint","zone":"a"},{"id":"grp_clean","createdAt":"2026-11-10T19:30:02.000Z","description":"🧹 التنظيف والتجهيز","gate":false,"isParent":true,"notes":"","orderIdx":3,"priority":"medium","status":"progress","team":"cleaning","zone":"b"},{"id":"grp_commission","createdAt":"2026-11-10T19:30:01.000Z","description":"⚙️ التشغيل التجريبي للأنظمة","gate":false,"isParent":true,"notes":"","orderIdx":2,"priority":"urgent","status":"progress","team":"maint","zone":"c"},{"id":"grp_final","createdAt":"2026-11-10T19:30:03.000Z","description":"🏁 الأعمال النهائية","gate":false,"isParent":true,"notes":"","orderIdx":4,"priority":"normal","status":"pending","team":"maint","zone":"building"},{"id":"grp_fire","createdAt":"2026-11-10T19:30:00.000Z","description":"🔧 إعادة تأهيل منطقة الحريق","gate":false,"isParent":true,"notes":"","orderIdx":1,"priority":"urgent","status":"progress","team":"maint","zone":"a"},{"id":"hof15dhohl11w09v7ybn","createdAt":"2026-11-10T12:29:47.318Z","description":"أضرار غرفة التبريد بالمطبخ الرئيسي واستبدال الوحدات الخارجية المتضررة","gate":false,"notes":"بانتظار اعتماد الاستبدال","parentId":"grp_commission","priority":"medium","status":"progress","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"b"},{"id":"i2hwaeiicgw0v4ilblxt","createdAt":"2026-11-10T12:27:52.547Z","description":"إصلاح دهان الطابقين الأرضي والأول","gate":true,"notes":"الأعمال النهائية — تأتي بالمرحلة الأخيرة من الأعمال","parentId":"grp_final","priority":"medium","status":"pending","team":"maint","zone":"b"},{"id":"ijd3lh26sj6hbdhluf1z","createdAt":"2026-11-10T08:30:23.980Z","description":"التأكد من تشغيل جميع الانظمة","gate":false,"notes":"مطلوب اختبار لكل نظام \nالتبريد، الشفط، التكييف، التسخين ، الري ، مولد الكهرباء  وجميع الانظمة الاخرى","parentId":"grp_commission","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-10T08:37:25.132Z","zone":"c"},{"id":"new_damaged_removal","createdAt":"2026-11-11T18:15:00.000Z","description":"إزالة الأجزاء المتضررة: الأخشاب والكابلات وحوامل الكابلات وأجزاء الجدران","gate":false,"notes":"📍 11 نوفمبر — تمهيدًا لاستكمال أعمال التنظيف والإصلاح","parentId":"grp_fire","priority":"urgent","status":"done","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"a"},{"id":"new_duct_removal","createdAt":"2026-11-10T19:30:10.000Z","description":"إزالة نظام الدكت بالكامل من مكان الحريق","gate":false,"notes":"✅ أُزيل دكت منطقة الحريق بالكامل (10 نوفمبر) قبل بدء تنظيف الدكت المركزي","parentId":"grp_fire","priority":"urgent","status":"done","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"a"},{"id":"new_furniture_clean","createdAt":"2026-11-10T19:30:11.000Z","description":"تنظيف الأثاث والثريات والأرضيات والخشب والموكيت","gate":false,"notes":"📍 11 نوفمبر: نُظّفت أرضيات الطابقين الأرضي والأول، ومفروشات وأرضيات جميع غرف الجناح الثاني بالطابق الأول — شركة تنظيف متخصصة\n⚠️ مفروشات الجناح الثاني نُظّفت في نفس يوم فكّ مجاري الهواء فيه: تُعاد معاينتها بعد انتهاء أعمال الدكت هناك وقبل اعتماد التنظيف كمنجز","parentId":"grp_clean","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-11T18:15:00.000Z","zone":"b"},{"id":"new_kitchen_clean","createdAt":"2026-11-11T18:15:01.000Z","description":"تنظيف المطبخ الرئيسي (الطابق السفلي)","gate":false,"notes":"📍 11 نوفمبر","parentId":"grp_clean","priority":"medium","status":"done","team":"cleaning","updatedAt":"2026-11-11T18:15:01.000Z","zone":"b"},{"id":"seed_a1","createdAt":"2026-11-09T13:44:00.000Z","description":"فحص بصري شامل من فني كهرباء مختص للوحة والكابلات المتضررة","gate":true,"notes":"","parentId":"grp_fire","priority":"urgent","status":"done","team":"maint","updatedAt":"2026-11-09T21:37:48.068Z","zone":"a"},{"id":"seed_a2","createdAt":"2026-11-09T13:44:01.000Z","description":"فحص تشغيل الانظمة المتعطله بمنطقه الحريق","gate":true,"notes":"لا يُعاد تشغيل أي نظام متعطل قبل الفحص\nإعادة التمديدات الكهربائية وإصلاحها · نظام التبريد والثلاجات · نظام الإنارة في المنطقة المتضررة · نظام التدفئة · نظام الري · نظام إنذار وإطفاء الحريق\n📍 تشغيل جزئي لكهرباء المبنى (10 نوفمبر)","parentId":"grp_fire","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"a"},{"id":"seed_a3","createdAt":"2026-11-09T13:44:02.000Z","description":"استبدال الكابلات وحواملها التالفة","gate":false,"notes":"📍 11 نوفمبر: أُزيلت الكابلات وحواملها المتضررة تمهيدًا للتركيب الجديد · فريق إضافي متخصص لتسريع الكهرباء والسباكة\n⚠️ لا تُغذَّى أي دائرة قبل إيقاف تسريبات المياه وتجفيف المنطقة واعتماد الفحص","parentId":"grp_fire","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"a"},{"id":"seed_b1","createdAt":"2026-11-09T13:44:13.000Z","description":"فحص وتنظيف الدكت المركزي بالكامل","gate":true,"notes":"📍 11 نوفمبر (الطابق الأول): نُظّفت مجاري الهواء في الجناح الأساسي، وفُكّت مجاري الجناح الثاني — شركة متخصصة بتنظيف مجاري الهواء","parentId":"grp_clean","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"b"},{"id":"seed_b2","createdAt":"2026-11-09T13:44:14.000Z","description":"تنظيف اثار الدخان من الأسطح والجدران بكل الطوابق المتأثرة","gate":false,"notes":"","parentId":"grp_clean","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-09T22:21:24.665Z","zone":"b"},{"id":"seed_b3","createdAt":"2026-11-09T13:44:15.000Z","description":"معالجة رائحة الدخان","gate":false,"notes":"تم انجاز 90% تقريبا","parentId":"grp_clean","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-11T17:31:27.840Z","zone":"b"},{"id":"seed_c4","createdAt":"2026-11-09T13:44:09.000Z","description":"تشغيل مؤقت لنظام الكميرات (تمديدات)","gate":false,"notes":"📍 تم تشغيل جميع الكاميرات (10 نوفمبر)","parentId":"grp_commission","priority":"urgent","status":"done","team":"maint","updatedAt":"2026-11-10T20:39:44.668Z","zone":"c"},{"id":"seed_c5","createdAt":"2026-11-09T13:44:10.000Z","description":"تشغيل تجريبي لنظام الري","gate":false,"notes":"","parentId":"grp_commission","priority":"medium","status":"progress","team":"maint","updatedAt":"2026-11-10T20:42:42.731Z","zone":"c"},{"id":"seed_p1_1","createdAt":"2026-11-09T16:42:00.000Z","description":"توثيق مصوّر شامل لتقييم الأضرار (كل المناطق)","gate":false,"notes":"","priority":"urgent","status":"done","team":"cleaning","updatedAt":"2026-11-11T18:15:00.000Z","zone":"building"},{"id":"seed_p2_1","createdAt":"2026-11-09T16:42:01.000Z","description":"إتلاف والتخلص النهائي من مخلفات الأثاث المحترق","gate":false,"notes":"","parentId":"grp_fire","priority":"urgent","status":"done","team":"cleaning","updatedAt":"2026-11-11T18:15:00.000Z","zone":"a"},{"id":"seed_p4_1","createdAt":"2026-11-09T16:42:02.000Z","description":"فحص وإصلاح مواسير المياه المتضررة بالطوابق العليا","gate":false,"notes":"اكتُشفت أثناء التقييم — يوجد تهريب مياه بأكثر من موقع\nيشمل مشاكل السباكة والمواسير الخاصة بنظام التدفئة\n⚠️ شرط سابق لإعادة التغذية الكهربائية في المنطقة نفسها","parentId":"grp_fire","priority":"urgent","status":"progress","team":"maint","updatedAt":"2026-11-11T18:15:00.000Z","zone":"a"},{"id":"seed_p6_1","createdAt":"2026-11-09T16:42:04.000Z","description":"إزالة الستائر والسجاد، حصرها وترقيمها، قبل تسليمها للغسيل","gate":false,"notes":"","parentId":"grp_clean","priority":"medium","status":"done","team":"cleaning","updatedAt":"2026-11-11T18:15:00.000Z","zone":"b"},{"id":"seed_p7_1","createdAt":"2026-11-09T16:42:06.000Z","description":"نقل الأثاث القابل للتنظيف (كنب/لوحات) لمنطقة خارجية مؤقتة","gate":false,"notes":"بالتوازي مع بقية الأعمال","parentId":"grp_clean","priority":"medium","status":"progress","team":"cleaning","updatedAt":"2026-11-11T18:15:00.000Z","zone":"b"},{"id":"seed_p8_1","createdAt":"2026-11-09T16:42:08.000Z","description":"غسيل ودهان المبنى بالكامل + إعادة تركيب الستائر/السجاد/الأثاث + تشغيل تجريبي نهائي شامل","gate":false,"notes":"⏳ ينتظر: اكتمال كل مهام منطقة أ + الأنظمة التشغيلية + تنظيف الدكت — هذه الخطوة هي المسار الحرج النهائي لكل المشروع","parentId":"grp_final","priority":"urgent","status":"deferred","team":"maint","updatedAt":"2026-11-09T22:17:53.706Z","zone":"building"}],"meta":{"dailylog":{"2026-11-11":{"done":["إزالة الأجزاء المتضررة في موقع الحريق: الأخشاب، والكابلات وحواملها، وأجزاء من الجدران","الطابق الأول: تنظيف مجاري الهواء في الجناح الأساسي، وفكّها في الجناح الثاني، وتنظيف مفروشات وأرضيات جميع غرف الجناح الثاني","تنظيف أرضيات الطابقين الأول والأرضي من الأوساخ المتراكمة، وتنظيف المطبخ الرئيسي بالطابق السفلي","غسل الموقع المتضرر بالكامل بمعدات متخصصة"],"end":"6:45 م","next":"الخميس 12 نوفمبر — 8:00 ص","teams":"شركة تنظيف الأرضيات والمفروشات (8:30 ص) · شركة تنظيف مجاري الهواء (9:00 ص) · فريق إصلاح الجدار والسقف"}},"gates":{"civilDefense":true,"ductCleaning":false,"electricalSafety":false,"fireAlarmCert":false},"incident":{"startedAt":"2026-11-09T11:49:00.000Z","targetDays":7},"owners":{"a":"","b":"","c":"عماد"},"schedule":{},"summaries":{"a":"اكتمل: الفحص البصري للوحة والكابلات، إتلاف مخلفات الأثاث المحترق، إزالة دكت المنطقة، إزالة الأجزاء المتضررة (أخشاب، كابلات وحواملها، أجزاء جدران)، وغسل الموقع بالكامل.\nجارٍ: استبدال الكابلات وحواملها، إصلاح الجدار والسقف، فحص تشغيل الأنظمة المتعطلة، وإصلاح مواسير المياه.\nتسلسل إلزامي: إنهاء إصلاح المواسير وتجفيف المنطقة قبل إعادة تغذية أي دائرة كهربائية.","b":"اكتمل: إزالة الستائر والسجاد وترقيمها، وتنظيف المطبخ الرئيسي.\nجارٍ: تنظيف مجاري الهواء (الجناح الأساسي بالطابق الأول نُظّف، والجناح الثاني فُكّ)، تنظيف الأرضيات والمفروشات، آثار الدخان على الأسطح والجدران، ومعالجة الرائحة (قرابة 90%).\nانتباه: مفروشات الجناح الثاني تُعاد معاينتها بعد انتهاء أعمال مجاري الهواء فيه.","c":"اكتمل: تشغيل جميع الكاميرات.\nجارٍ: التشغيل التجريبي لنظام الري، والتأكد من تشغيل جميع الأنظمة، وأضرار غرفة التبريد بالمطبخ (بانتظار اعتماد الاستبدال).\nلم يبدأ: نظام إنذار وإطفاء الحريق، وقلب الهواء والتبريد المركزي."},"zones":{"a":2,"b":6,"c":2}},"generatedAt":"2026-11-11T18:13:38.405Z"};
   /* ==DATA_END== */
   function frozenDoc(p){
     var key = String(p).split("/")[1];
@@ -551,6 +603,113 @@
   var zoneTargets = {a:2, c:2, b:10, final:2};
   var zoneSummaries = {a:"", c:"", b:""};
   var schedule = {};          // {groupId:{start,end}} بالأيام من بداية الحادثة
+  var dailyLog = {};          // {"YYYY-MM-DD": {teams, done:[...], end, next}}
+  var openNotes = {};         // ملاحظات فتحها المستخدم — تبقى مفتوحة بعد إعادة الرسم
+  document.addEventListener("toggle", function(e){
+    var d = e.target;
+    if(d && d.classList && d.classList.contains("notes-wrap")){
+      var id = d.getAttribute("data-id");
+      if(d.open) openNotes[id] = true; else delete openNotes[id];
+    }
+  }, true);
+
+  // ===== السجل اليومي =====
+  var logDeleting = null;
+  function dayLabel(key){
+    try {
+      return new Date(key + "T12:00:00Z").toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",
+        {weekday:"long", day:"numeric", month:"long"});
+    } catch(e){ return key; }
+  }
+  function todayKey(){
+    try { return new Date().toLocaleDateString("en-CA", {timeZone:"Asia/Riyadh"}); }
+    catch(e){ return new Date().toISOString().slice(0,10); }
+  }
+  function logDayHtml(key){
+    var d = dailyLog[key] || {};
+    var done = Array.isArray(d.done) ? d.done : String(d.done||"").split("\n");
+    done = done.map(function(s){ return String(s).trim(); }).filter(Boolean);
+    var teams = String(d.teams||"").split(/\s*[·•|]\s*|\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var tail = [];
+    if(d.end) tail.push('🕕 انتهى العمل: <b>'+escapeHtml(d.end)+'</b>');
+    if(d.next) tail.push('▶️ الاستئناف: <b>'+escapeHtml(d.next)+'</b>');
+    return '<div class="log-day">'+
+      '<div class="log-date"><span>'+escapeHtml(dayLabel(key))+'</span>'+
+        '<span class="log-acts"><button class="lg-edit" data-k="'+key+'">✏️ تعديل</button>'+
+        '<button class="lg-del'+(logDeleting===key?' confirming':'')+'" data-k="'+key+'">'+(logDeleting===key?'تأكيد الحذف؟':'🗑️')+'</button></span></div>'+
+      (teams.length ? '<div class="log-sub">الفرق الحاضرة</div><ul class="log-teams">'+teams.map(function(s){ return '<li>'+escapeHtml(s)+'</li>'; }).join("")+'</ul>' : '')+
+      (done.length ? '<div class="log-sub">المنجز</div><ul class="log-done">'+done.map(function(s){ return '<li>'+escapeHtml(s)+'</li>'; }).join("")+'</ul>' : '')+
+      tail.map(function(s){ return '<div class="log-line">'+s+'</div>'; }).join("")+
+    '</div>';
+  }
+  function renderLog(){
+    var box = document.getElementById("dailyLog"); if(!box) return;
+    var keys = Object.keys(dailyLog).filter(function(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }).sort().reverse();
+    var sum = document.getElementById("logSummary");
+    if(sum) sum.textContent = keys.length ? "📅 السجل اليومي — آخر يوم: " + dayLabel(keys[0]) : "📅 السجل اليومي";
+    var panel = document.getElementById("logPanel");
+    if(panel) panel.hidden = !keys.length && document.body.classList.contains("report-mode");
+    if(!keys.length){ box.innerHTML = '<div class="log-empty">لم يُسجَّل أي يوم بعد.</div>'; }
+    else {
+      var recent = keys.slice(0,3), older = keys.slice(3);
+      box.innerHTML = recent.map(logDayHtml).join("") +
+        (older.length ? '<details class="log-older"><summary>الأيام السابقة ('+older.length+')</summary>'+older.map(logDayHtml).join("")+'</details>' : '');
+    }
+    Array.prototype.forEach.call(box.querySelectorAll(".lg-edit"), function(b){
+      b.addEventListener("click", function(){ fillLogForm(b.getAttribute("data-k")); });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll(".lg-del"), function(b){
+      b.addEventListener("click", function(){ deleteLogDay(b.getAttribute("data-k")); });
+    });
+  }
+  function fillLogForm(key){
+    var d = dailyLog[key] || {};
+    document.getElementById("lgDate").value = key;
+    document.getElementById("lgTeams").value = d.teams || "";
+    document.getElementById("lgDone").value = (Array.isArray(d.done) ? d.done : [d.done||""]).join("\n");
+    document.getElementById("lgEnd").value = d.end || "";
+    document.getElementById("lgNext").value = d.next || "";
+    document.getElementById("logFormTitle").textContent = "✏️ تعديل يوم " + dayLabel(key);
+    document.getElementById("logForm").scrollIntoView({behavior:"smooth", block:"center"});
+  }
+  function resetLogForm(){
+    document.getElementById("lgDate").value = todayKey();
+    ["lgTeams","lgDone","lgEnd","lgNext"].forEach(function(id){ document.getElementById(id).value = ""; });
+    document.getElementById("logFormTitle").textContent = "➕ تسجيل يوم عمل";
+  }
+  function saveLogDay(btn){
+    if(!db){ flashBtn(btn, "✗ لا يوجد اتصال", false); return; }
+    var key = document.getElementById("lgDate").value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(key)){ flashBtn(btn, "✗ اختر التاريخ", false); return; }
+    var done = document.getElementById("lgDone").value.split("\n").map(function(s){ return s.replace(/^[\s•\-–·*]+/,"").trim(); }).filter(Boolean);
+    var entry = {
+      teams: document.getElementById("lgTeams").value.trim(),
+      done: done,
+      end: document.getElementById("lgEnd").value.trim(),
+      next: document.getElementById("lgNext").value.trim()
+    };
+    if(!entry.teams && !done.length){ flashBtn(btn, "✗ أدخل الفرق أو المنجز", false); return; }
+    var next = Object.assign({}, dailyLog); next[key] = entry;
+    flashBtn(btn, "جارٍ الحفظ…", null);
+    db.doc("meta/dailylog").set(next)
+      .then(function(){ dailyLog = next; renderLog(); resetLogForm(); flashBtn(btn, "✓ تم الحفظ", true); })
+      .catch(function(e){ handleWriteError(e); flashBtn(btn, isPermissionError(e) ? "✗ لا تملك صلاحية" : "✗ لم يُحفظ", false); });
+  }
+  function deleteLogDay(key){
+    if(logDeleting !== key){ logDeleting = key; renderLog(); setTimeout(function(){ if(logDeleting===key){ logDeleting=null; renderLog(); } }, 4000); return; }
+    logDeleting = null;
+    if(!db) return;
+    var next = Object.assign({}, dailyLog); delete next[key];
+    db.doc("meta/dailylog").set(next)
+      .then(function(){ dailyLog = next; renderLog(); })
+      .catch(function(e){ handleWriteError(e); renderLog(); });
+  }
+  (function(){
+    var s = document.getElementById("lgSave"), r = document.getElementById("lgReset");
+    if(s) s.addEventListener("click", function(){ saveLogDay(s); });
+    if(r) r.addEventListener("click", resetLogForm);
+    var d = document.getElementById("lgDate"); if(d && !d.value) d.value = todayKey();
+  })();
   var db = null;
 
   // ===== الجدول الزمني للمجموعات وصحته =====
@@ -605,7 +764,7 @@
     var reopened = [];
     window.addEventListener("beforeprint", function(){
       reopened = [];
-      document.querySelectorAll("details.foldable:not([open])").forEach(function(d){
+      document.querySelectorAll("details.foldable:not([open]), details.notes-wrap:not([open]), details.log-older:not([open])").forEach(function(d){
         d.open = true; reopened.push(d);
       });
     });
@@ -1030,7 +1189,9 @@
       '<div class="task-top-actions">'+statusHtml+actionsHtml+'</div></div>'+
       '<div class="task-meta"><span class="pill">'+zn.label+'</span><span class="pill">'+tm.label+'</span>'+
       '<span class="prio '+pr.cls+'">'+pr.icon+' '+pr.label+'</span><span class="age">أُضيفت '+relTime(t.createdAt)+'</span></div>'+
-      (t.notes?'<div class="notes">'+escapeHtml(t.notes)+'</div>':'')+'</div>';
+      (t.notes?'<details class="notes-wrap" data-id="'+t.id+'"'+(openNotes[t.id]?' open':'')+'><summary>📝 ملاحظات'+
+        (t.notes.indexOf("⚠️")>-1?' <span class="warn-dot">⚠️ تنبيه</span>':'')+'</summary>'+
+        '<div class="notes">'+escapeHtml(t.notes)+'</div></details>':'')+'</div>';
   }
 
   var ZONE_ORDER = ["a","c","b","building"];
@@ -1190,6 +1351,11 @@
           db.doc("meta/zones").set(Object.assign({}, zoneTargets)).catch(function(){});
         }
         renderCountdowns();
+      }, function(e){ console.error(e); });
+
+      db.doc("meta/dailylog").onSnapshot(function(snap){
+        dailyLog = snap.exists ? (snap.data() || {}) : {};
+        renderLog();
       }, function(e){ console.error(e); });
 
       db.doc("meta/schedule").onSnapshot(function(snap){
