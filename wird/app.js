@@ -35,7 +35,7 @@ function load() {
 
 /* تجريد التشكيل لمقارنة الكلمات */
 const bare = w => w
-  .replace(/[ً-ْٰٓ-ٕۖ-ۭـ]/g, '')
+  .replace(/[ً-ٰٟۖ-ۭـ]/g, '')
   .replace(/[آأإٱ]/g, 'ا')
   .replace(/ى/g, 'ي');
 
