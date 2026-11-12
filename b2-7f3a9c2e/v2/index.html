@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+</head>
+<body>
+<title>تقرير مبنى 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* تخطيط: رأس واحد بتبويبين (الملخص | التفصيلي). الملخص = قرار وتوجّه، التفصيلي = قائمة بنود قابلة للطي حسب النظام */
+  :root{
+    --bg:#f9f9f7; --surface:#fcfcfb; --surface-2:#f2f1ee;
+    --text:#0b0b0b; --muted:#52514e; --faint:#898781;
+    --border:rgba(11,11,11,.10); --grid:#e4e3dc;
+    --accent:#7a1f1f; --accent-2:#2a78d6;
+    --s-done:#0b8f0b; --s-progress:#2a78d6; --s-partial:#0d8fa0; --s-verify:#a3a097; --s-fault:#d03b3b; --warn:#b97800;
+    --font-ui:"IBM Plex Sans Arabic","Segoe UI",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --bg:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+      --text:#f0efec; --muted:#c3c2b7; --faint:#8f8d86;
+      --border:rgba(255,255,255,.12); --grid:#2e2e2b;
+      --accent:#a33a3a; --accent-2:#3987e5;
+      --s-done:#1fae1f; --s-progress:#3987e5; --s-partial:#13a4b8; --s-verify:#6f6d66; --s-fault:#e66767; --warn:#f0a91c;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+    --text:#f0efec; --muted:#c3c2b7; --faint:#8f8d86;
+    --border:rgba(255,255,255,.12); --grid:#2e2e2b;
+    --accent:#a33a3a; --accent-2:#3987e5;
+    --s-done:#1fae1f; --s-progress:#3987e5; --s-partial:#13a4b8; --s-verify:#6f6d66; --s-fault:#e66767; --warn:#f0a91c;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{direction:rtl; font-family:var(--font-ui); background:var(--bg); color:var(--text); line-height:1.65;
+       padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px))}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+  h1,h2,h3{margin:0; text-wrap:balance}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:820px; margin:0 auto; padding-block:calc(14px + env(safe-area-inset-top,0px)) 48px}
+
+  /* الرأس + التبويبات */
+  .top{display:grid; gap:4px; padding:4px 2px 0}
+  .top h1{font-size:18px; font-weight:800}
+  .top .stamp{font-size:12px; color:var(--faint)}
+  .proto{display:inline-block; font-size:11px; font-weight:800; color:var(--warn); border:1px solid var(--warn); border-radius:999px; padding:1px 9px; margin-inline-start:6px; vertical-align:middle}
+  .tabs{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--bg); display:flex; gap:4px; border-bottom:1px solid var(--border); margin:12px 0 16px}
+  .tab{appearance:none; border:none; background:none; font:inherit; color:var(--muted); font-size:14px; font-weight:700; padding:10px 14px 9px; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-1px}
+  .tab[aria-selected="true"]{color:var(--text); border-bottom-color:var(--accent)}
+  .tab:focus-visible{outline:2px solid var(--accent-2); outline-offset:-2px}
+
+  /* ===== الملخص ===== */
+  .view{display:grid; gap:18px}
+  .headline{display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px}
+  .ring{--p:9; width:84px; height:84px; border-radius:50%; display:grid; place-items:center;
+        background:conic-gradient(var(--s-done) calc(var(--p)*1%), var(--grid) 0)}
+  .ring b{width:66px; height:66px; border-radius:50%; background:var(--surface); display:grid; place-items:center; font-size:20px; font-weight:800}
+  .headline .what{font-size:15px; font-weight:800; line-height:1.55}
+  .headline .sub{font-size:12px; color:var(--faint); margin-top:4px}
+  .sec-title{font-size:12.5px; font-weight:800; color:var(--muted); margin:0 2px 8px}
+  .callouts{display:grid; gap:8px}
+  .callout{border-radius:11px; padding:10px 14px; font-size:13px; line-height:1.7; border:1px solid var(--border); background:var(--surface); display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:start}
+  .callout .ic{font-size:15px; line-height:1.5}
+  .callout b{font-weight:800}
+  .callout.decide{border-inline-start:4px solid var(--s-fault)}
+  .callout.safety{border-inline-start:4px solid var(--warn)}
+  .sys-list{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:4px 16px}
+  .srow{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; padding:11px 0; border-top:1px solid var(--border)}
+  .srow:first-child{border-top:none}
+  .srow .nm{font-size:13.5px; font-weight:800}
+  .srow .pc{font-size:13.5px; font-weight:800; text-align:left}
+  .srow .ln{grid-column:1/-1; font-size:12.5px; color:var(--muted)}
+  .srow .mini{grid-column:1/-1; height:6px; border-radius:999px; background:var(--grid); overflow:hidden}
+  .srow .mini i{display:block; height:100%; background:var(--s-done); border-radius:999px}
+  .work-card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px 16px; display:grid; gap:8px}
+  .wc-top{display:flex; justify-content:space-between; font-size:13.5px}
+  .wc-top span{font-size:12px; color:var(--faint)}
+  .wc-bar{display:flex; height:10px; border-radius:999px; overflow:hidden; background:var(--grid); gap:2px}
+  .wc-bar i{display:block; height:100%}
+  .wc-leg{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--muted)}
+  .wc-leg span{display:inline-flex; gap:6px; align-items:center}
+  .wc-leg i{width:10px; height:10px; border-radius:3px; display:inline-block}
+  .callout.para{border-inline-start:4px solid var(--s-progress)}
+  .srow .mini{display:flex; gap:2px}
+  .srow .mini i.a{background:var(--s-progress)}
+  .days{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media (max-width:640px){.days{grid-template-columns:1fr}}
+  .day{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px 16px; min-width:0}
+  .day h3{font-size:13px; font-weight:800; margin-bottom:6px}
+  .day ul{margin:0; padding-right:18px; font-size:12.5px; line-height:1.85; color:var(--text)}
+  .more{font-size:12.5px; text-align:center}
+  .more button{border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:999px; padding:8px 16px; font:inherit; font-weight:700; cursor:pointer}
+
+  /* ===== التفصيلي ===== */
+  .stats{font-size:13px; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 14px}
+  .stats b{color:var(--text)}
+  .stats .f b{color:var(--s-fault)}
+  .filters{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+  .chip{border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:999px; padding:5px 11px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:6px}
+  .chip.on{background:var(--text); color:var(--bg); border-color:var(--text)}
+  .chip:focus-visible{outline:2px solid var(--accent-2); outline-offset:1px}
+  .dot{width:8px; height:8px; border-radius:50%; display:inline-block; flex:0 0 auto}
+  .search{flex:1 1 180px; min-width:0; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:999px; padding:6px 13px; font-size:12.5px; font-family:inherit}
+  .acc{background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden}
+  .acc + .acc{margin-top:8px}
+  .acc > summary{list-style:none; cursor:pointer; display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:12px 14px}
+  .acc > summary::-webkit-details-marker{display:none}
+  .acc > summary::after{content:""; width:7px; height:7px; border-right:2px solid var(--faint); border-bottom:2px solid var(--faint); transform:rotate(45deg); transition:transform .15s}
+  .acc[open] > summary::after{transform:rotate(-135deg)}
+  .acc > summary:focus-visible{outline:2px solid var(--accent-2); outline-offset:-2px}
+  .acc .t{font-size:13.5px; font-weight:800}
+  .acc .t small{font-weight:600; color:var(--faint); font-size:11.5px; margin-inline-start:6px}
+  .acc .p{font-size:13px; font-weight:800}
+  .row{border-top:1px solid var(--border); padding:9px 14px; display:grid; grid-template-columns:2.2em minmax(0,1fr) auto; gap:4px 8px; align-items:baseline; cursor:pointer}
+  .row:hover{background:var(--surface-2)}
+  .row .n{font-size:11.5px; color:var(--faint); font-weight:800}
+  .row .it{font-size:13px; font-weight:600}
+  .row .st{font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; color:var(--muted)}
+  .row .det{grid-column:2/-1; font-size:12px; color:var(--muted); white-space:pre-line; display:none}
+  .row.open .det{display:block}
+  .row .det .m{color:var(--faint); display:block; margin-top:2px}
+  .row .det .stale{color:var(--muted); font-weight:700}
+  .empty{padding:14px; font-size:13px; color:var(--faint)}
+  .okstrip{font-size:12.5px; color:var(--muted); background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:9px 14px}
+  .okstrip b{color:var(--s-done)}
+  .mx-wrap{overflow-x:auto; background:var(--surface); border:1px solid var(--border); border-radius:14px}
+  .mx{border-collapse:collapse; width:100%; table-layout:fixed}
+  .mx th, .mx td{padding:8px 1px; text-align:center; border-top:1px solid var(--border)}
+  .mx col.c-ar{width:31%}
+  .mx thead th{border-top:none; font-size:16px; font-weight:400; padding-top:10px}
+  .mx thead th small{display:block; font-size:9px; color:var(--faint); font-weight:700; line-height:1.2; margin-top:2px}
+  .mx th.ar{text-align:right; font-size:12px; font-weight:800; padding-inline:10px 4px; white-space:normal; line-height:1.45}
+  .mx th.ar small{display:block; font-size:11px; font-weight:700}
+  .mx tr.iso th, .mx tr.iso td{opacity:.55}
+  .cell{width:24px; height:24px; border-radius:7px; border:none; cursor:pointer; display:inline-grid; place-items:center; font-size:12px; font-weight:800; color:#fff}
+  .cell:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
+  .cell.ok{background:var(--s-done)} .cell.part{background:var(--warn)} .cell.no{background:var(--s-fault)}
+  .cell.na{background:transparent; color:var(--faint); border:1px dashed var(--border)} .cell.iso{background:var(--s-verify)}
+  .cell.par{background:var(--s-progress)}
+  .cell.unk{background:var(--surface-2); color:var(--muted); border:1.5px dashed var(--muted)}
+  .callout.para{border-inline-start:4px solid var(--s-progress)}
+  .mx td.work{text-align:right; font-size:12px; color:var(--muted); padding:10px 8px; line-height:1.7}
+  .mx td.work .refs{display:block; font-size:11px; color:var(--faint)}
+  .cell.sel{box-shadow:0 0 0 3px var(--bg), 0 0 0 5px var(--text)}
+  .legend2{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color:var(--muted); margin-top:8px}
+  .legend2 span{display:inline-flex; gap:6px; align-items:center}
+  .legend2 i{width:12px; height:12px; border-radius:4px; display:inline-block}
+  .why{margin-top:10px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 14px; font-size:13px; line-height:1.75}
+  .why b{font-weight:800}
+  .why .refs{display:block; margin-top:4px; font-size:12px; color:var(--faint)}
+  .why .refs a{color:var(--accent-2); font-weight:700; text-decoration:none; cursor:pointer}
+  .rgrp{background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden}
+  .rgrp + .rgrp{margin-top:12px}
+  .rgrp > summary{list-style:none; cursor:pointer; padding:13px 16px; display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; border-inline-start:5px solid var(--c)}
+  .rgrp > summary::-webkit-details-marker{display:none}
+  .rgrp .rt{font-size:14px; font-weight:800}
+  .rgrp .rt small{display:block; font-size:12px; font-weight:600; color:var(--muted)}
+  .rgrp .rc{font-size:13px; font-weight:800; white-space:nowrap}
+  .rrow{border-top:1px solid var(--border); padding:9px 16px; display:grid; grid-template-columns:2.2em minmax(0,1fr) auto; gap:3px 8px; align-items:baseline}
+  .rrow .n{font-size:11.5px; color:var(--faint); font-weight:800}
+  .rrow .it{font-size:13px; font-weight:600}
+  .rrow .cd{grid-column:2/-1; font-size:12px; color:var(--muted)}
+  .rrow .cd::before{content:"↳ "; color:var(--faint)}
+  .rrow.ok .it{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--faint)}
+  .row .det .orig{display:block; color:var(--faint); font-size:11.5px; margin-top:2px}
+  .note-src{font-size:11.5px; color:var(--faint); text-align:center}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <h1>معالجة آثار حريق — مبنى 2</h1>
+    <div class="stamp" id="stamp"></div>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="أقسام التقرير">
+    <button class="tab" role="tab" id="t-sum" aria-controls="v-sum" aria-selected="true">📄 الملخص</button>
+    <button class="tab" role="tab" id="t-rdy" aria-controls="v-rdy" aria-selected="false">🏠 جاهزية التشغيل</button>
+    <button class="tab" role="tab" id="t-det" aria-controls="v-det" aria-selected="false">📋 السجل التفصيلي</button>
+  </nav>
+
+  <!-- ===== الملخص ===== -->
+  <section class="view" id="v-sum" role="tabpanel" aria-labelledby="t-sum">
+    <div class="headline">
+      <div class="ring num" id="ring"><b id="ringPct">—</b></div>
+      <div>
+        <div class="what">التنظيف والكهرباء والمياه شبه مكتملة في مناطق التشغيل. السكن سيكون جاهزًا بعد تأمين التدفئة والتكييف.</div>
+        <div class="sub" id="ringSub"></div>
+      </div>
+    </div>
+
+    <div class="work-card">
+      <div class="wc-top"><b>الإصلاح الشامل</b><span class="num" id="wcCount"></span></div>
+      <div class="wc-bar" id="wcBar"></div>
+      <div class="wc-leg" id="wcLeg"></div>
+    </div>
+
+    <div>
+      <div class="sec-title">قبل السكن</div>
+      <div class="callouts">
+        <div class="callout safety"><span class="ic">♨️</span><div><b>التدفئة:</b> يُقيَّم الضرر بعد توصيل الكهرباء للنظام صباح الجمعة.</div></div>
+        <div class="callout safety"><span class="ic">❄️</span><div><b>التكييف:</b> يُدرس تشغيل جزئي أو حل مؤقت إلى أن يُصلح النظام كاملًا.</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">مستمر بالتوازي — لا يعيق السكن</div>
+      <div class="callouts">
+        <div class="callout para"><span class="ic">🔥</span><div><b>الحماية من الحريق:</b> العروض بانتظار الاعتماد من شركة التأمين، وفحص الإنذار الجمعة.</div></div>
+        <div class="callout para"><span class="ic">🧱</span><div><b>ممر الحريق في الطابق السفلي:</b> معزول، واللياسة وتركيب الدكت وحوامل الكيابل جارية.</div></div>
+        <div class="callout para"><span class="ic">🚛</span><div><b>الأنقاض:</b> أُزيلت أجزاء كبيرة منها، والمتبقي في الكراج بانتظار موافقة شركة التأمين على التخلص منه.</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">الأنظمة</div>
+      <div class="sys-list" id="sysList"></div>
+    </div>
+
+    <div class="days">
+      <div class="day"><h3>✅ اليوم — الخميس 12 نوفمبر</h3><ul id="todayList"></ul></div>
+      <div class="day"><h3>📆 غدًا — الجمعة 13 نوفمبر</h3><ul id="nextList"></ul></div>
+    </div>
+
+    <div class="more"><button id="toDet">📋 عرض البنود الـ<span class="num" id="totalN"></span> بالتفصيل</button></div>
+  </section>
+
+  <!-- ===== جاهزية التشغيل ===== -->
+  <section class="view" id="v-rdy" role="tabpanel" aria-labelledby="t-rdy" hidden>
+    <div class="headline">
+      <div class="ring num" id="rRing" style="--p:0"><b id="rPct">—</b></div>
+      <div>
+        <div class="what" id="rWhat"></div>
+        <div class="sub" id="rSub"></div>
+      </div>
+    </div>
+    <div class="okstrip" id="okStrip"></div>
+    <div>
+      <div class="sec-title">الأنظمة المركزية</div>
+      <div class="callouts" id="rShared"></div>
+    </div>
+    <div>
+      <div class="sec-title">المناطق × الخدمات الأساسية <span style="font-weight:600;color:var(--faint)">— اضغط على أي خانة لمعرفة السبب</span></div>
+      <div class="mx-wrap"><table class="mx" id="mx"></table></div>
+      <div class="legend2" id="mxLegend"></div>
+      <div class="why" id="why" hidden></div>
+    </div>
+    <div>
+      <div class="sec-title">🔧 المسار الموازي — لا يعيق التشغيل، ويُصلح بالتوازي</div>
+      <div class="callouts" id="rPar"></div>
+    </div>
+    <div class="note-src" id="rAsOf"></div>
+  </section>
+
+  <!-- ===== التفصيلي ===== -->
+  <section class="view" id="v-det" role="tabpanel" aria-labelledby="t-det" hidden>
+    <div class="stats num" id="stats"></div>
+    <div class="filters" id="filters"></div>
+    <div id="acc"></div>
+    <div class="note-src">البنود والحالات كما وردت في ملف المقاول، بنفس الترقيم. اضغط على أي بند لعرض ملاحظته.</div>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* ==REG_START== */
+  var REG = {"asof": "الخميس 12 نوفمبر 2026 | آخر تحديث: 3:00 م", "source": "ملف المقاول", "builtAt": "2026-11-12T21:06:32.557186+00:00", "systems": [{"key": "clean", "label": "🧹 التنظيف والتجهيز"}, {"key": "civil", "label": "🧱 البناء والتشطيبات"}, {"key": "hvac", "label": "❄️ التكييف والتبريد"}, {"key": "power", "label": "⚡ الكهرباء والطاقة"}, {"key": "fire", "label": "🔥 الحماية من الحريق"}, {"key": "water", "label": "💧 المياه والتدفئة والري"}, {"key": "bldg", "label": "🖥️ أنظمة المبنى"}], "items": [{"n": 1, "section": "التنظيف", "item": "تنظيف المفروشات والموكيت والأرضيات", "itemOrig": "", "status": "partial", "statusRaw": "منجز جزئيًا", "note": "اكتمل التنظيف الشامل للطابق الأول بتاريخ 12/11. تنظيف الطابق الأرضي مستمر. لا يوجد تأكيد مستقل لإنجاز جميع الموكيت.", "date": "2026-11-12", "sys": "clean", "floor": "g", "noUpdate": false, "ready": "block", "cond": "المفروشات والأرضيات في الأماكن المسكونة"}, {"n": 2, "section": "التنظيف", "item": "تنظيف وتعقيم مجاري الهواء (الدكت)", "itemOrig": "تنظيف وتعقيم مجاري الهواء", "status": "partial", "statusRaw": "منجز جزئيًا", "note": "اكتمل تنظيف مجاري الهواء بالطابق الأول والطابق الارضي. \nالتعقيم بانتظار تركيب الستائر في الطابق الأول غداً للبدء قيد التحقق", "date": "2026-11-12", "sys": "clean", "floor": "", "noUpdate": false, "ready": "block", "cond": "لا يُشغَّل التكييف قبل التنظيف والتعقيم"}, {"n": 3, "section": "التنظيف", "item": "تنظيف الستائر", "itemOrig": "", "status": "done", "statusRaw": "مكتمل", "note": "تم الانتهاء من الغسيل وغداً سيبدأ التركيب صباحاً", "date": null, "sys": "clean", "floor": "", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 4, "section": "التنظيف", "item": "تنظيف السجاد", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "يوم السبت الاستلام", "date": null, "sys": "clean", "floor": "", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 5, "section": "التنظيف", "item": "تنظيف الغرف الفنية في الطابق السفلي", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "clean", "floor": "b1", "noUpdate": true, "ready": "cond", "cond": "تُغلق الغرف الفنية غير النظيفة"}, {"n": 6, "section": "التنظيف", "item": "تنظيف المطبخ الأساسي", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "نُفّذت أعمال تنظيف المطبخ الرئيسي في الطابق السفلي بتاريخ 11/11. باشرت عاملات إضافيات تنظيف المطبخ الأساسي بتاريخ 12/11. الإقفال النهائي يوم غد بعد انتهاء غسيل أدوات المطبخ.", "date": "2026-11-12", "sys": "clean", "floor": "", "noUpdate": false, "ready": "cond", "cond": "شرط لتشغيل المطبخ فقط"}, {"n": 7, "section": "التنظيف", "item": "غسل الموقع المتضرر بالكامل", "itemOrig": "", "status": "done", "statusRaw": "مكتمل", "note": "تم غسل الموقع المتضرر بالكامل باستخدام معدات متخصصة وفريق مختص.", "date": "2026-11-11", "sys": "clean", "floor": "", "noUpdate": false, "ready": "block", "cond": ""}, {"n": 8, "section": "الإزالة", "item": "إزالة الأخشاب المتضررة", "itemOrig": "", "status": "done", "statusRaw": "مكتمل", "note": "تمت إزالة الأخشاب المتضررة المذكورة في تقرير 11/11.", "date": "2026-11-11", "sys": "civil", "floor": "", "noUpdate": false, "ready": "block", "cond": ""}, {"n": 9, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "هدم الأجزاء المتضررة ورفع الأنقاض", "itemOrig": "", "status": "done", "statusRaw": "مكتمل", "note": "تمت إزالة الأجزاء المتضررة من الجدران والأخشاب والكيابل وحواملها المذكورة بالتقرير.\nتم رفع جميع الأنقاض ووضعها في الكراج بانتظار موافقة شركة التأمين لرميها.", "date": "2026-11-11", "sys": "civil", "floor": "b1", "noUpdate": false, "ready": "cond", "cond": "الأنقاض في الكراج حِمل قابل للاشتعال: تُرفع أو تُعزل قبل السكن"}, {"n": 10, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "تنظيف الجدران", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "تم غسل وتنظيف الجدران في منطقة الحريق على أن يتم استكمال أعمال الدهان في كامل الطابق السفلي بمهلة أقصاها يوم السبت بتاريخ 14/11", "date": "2026-11-12", "sys": "civil", "floor": "b1", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 11, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "أعمال اللياسة وإصلاح الجدران", "itemOrig": "أعمال الورقة وإصلاح الجدران", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "بدأ فريق الإصلاح أعماله بتاريخ 11/11.\nتستمر أعمال اللياسة والخرسانة في الطابق السفلي الأول يوم غد", "date": "2026-11-12", "sys": "civil", "floor": "b1", "noUpdate": false, "ready": "cond", "cond": "منطقة الحريق تبقى مغلقة حتى الانتهاء"}, {"n": 12, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "دهان الجدران", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "يتم التسليم يوم السبت بتاريخ 11/14", "date": "2026-11-12", "sys": "civil", "floor": "b1", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 13, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "دهان الأبواب", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "يتم التسليم يوم السبت بتاريخ 11/14", "date": "2026-11-12", "sys": "civil", "floor": "b1", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 14, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "إصلاح أو استبدال السقف المعلّق (الجبس)", "itemOrig": "إصلاح أو استبدال السقف المستعار", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": "2026-11-12", "sys": "civil", "floor": "b1", "noUpdate": true, "ready": "cond", "cond": "منطقة الحريق تبقى مغلقة"}, {"n": 15, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "إصلاح السقف وأعمال الخرسانة", "itemOrig": "إصلاح السقف وأعمال الباطون", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "إنجاز أعمال السقف نحو 80% وفق التقرير اليومي. النسبة تخص السقف فقط ولا تشمل مجمل البناء والتشطيبات.", "date": "2026-11-12", "sys": "civil", "floor": "b1", "noUpdate": false, "ready": "cond", "cond": "إصلاح إنشائي: المنطقة مغلقة حتى يعتمده مهندس"}, {"n": 16, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "تلميع البلاط وجليه", "itemOrig": "جلي وتلميع البلاط", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": null, "sys": "civil", "floor": "b1", "noUpdate": true, "ready": "later", "cond": ""}, {"n": 17, "section": "البناء والتشطيب — الطابق السفلي (-1)", "item": "استبدال البلاط المتضرر بمساحة 5 م²", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "civil", "floor": "b1", "noUpdate": true, "ready": "later", "cond": ""}, {"n": 18, "section": "البناء والتشطيب — الطابق الأرضي", "item": "أعمال دهان بمساحة تقارب 800 م²", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": null, "sys": "civil", "floor": "g", "noUpdate": true, "ready": "later", "cond": "ملغى حسب قرار المدير"}, {"n": 19, "section": "البناء والتشطيب — الطابق الأرضي", "item": "تكسير وإصلاح أرضية دورة مياه واحدة لتمرير الأنابيب", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "قبل يوم الاثنين يبدأ العمل بها بعد الكشف عليها اليوم من قبل متخصص", "date": "2026-11-12", "sys": "civil", "floor": "g", "noUpdate": false, "ready": "cond", "cond": "دورة المياه تُغلق حتى الإصلاح"}, {"n": 20, "section": "البناء والتشطيب — الطابق الأرضي", "item": "أسقف جبس معلّقة في دورتَي مياه", "itemOrig": "أسقف جبسية مستعارة في دورتَي مياه", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": null, "sys": "civil", "floor": "g", "noUpdate": true, "ready": "later", "cond": ""}, {"n": 21, "section": "البناء والتشطيب — الطابق الأرضي", "item": "تلميع البلاط وجليه", "itemOrig": "جلي وتلميع البلاط", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "civil", "floor": "g", "noUpdate": true, "ready": "later", "cond": ""}, {"n": 22, "section": "البناء والتشطيب — الطابق الأول", "item": "أعمال الدهان المطلوبة", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": null, "sys": "civil", "floor": "f1", "noUpdate": true, "ready": "later", "cond": "ملغى حسب قرار المدير"}, {"n": 23, "section": "التكييف والتبريد", "item": "استبدال مجاري الهواء المتضررة", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": "2026-11-11", "sys": "hvac", "floor": "", "noUpdate": true, "ready": "cond", "cond": "يُعزل فرع الدكت المتضرر"}, {"n": 24, "section": "التكييف والتبريد", "item": "إصلاح مجاري الهواء", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": null, "sys": "hvac", "floor": "", "noUpdate": true, "ready": "cond", "cond": "يُعزل فرع الدكت المتضرر"}, {"n": 25, "section": "التكييف والتبريد", "item": "عزل مجاري الهواء", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "hvac", "floor": "", "noUpdate": true, "ready": "later", "cond": ""}, {"n": 26, "section": "التكييف والتبريد", "item": "استبدال بوابات الهواء الآلية (الدامبر)", "itemOrig": "استبدال بوابات الهواء المزودة بمحركات", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": null, "sys": "hvac", "floor": "", "noUpdate": true, "ready": "cond", "cond": "بوابات الهواء مرتبطة بمنع انتشار الدخان: تُغلق يدويًا في المنطقة المتضررة"}, {"n": 27, "section": "التكييف والتبريد", "item": "فلاتر وحدات مناولة الهواء (مكائن التكييف المركزي)", "itemOrig": "فلاتر وحدات مناولة الهواء", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "hvac", "floor": "", "noUpdate": true, "ready": "block", "cond": "فلاتر ملوثة بالسخام تنشره عند تشغيل التكييف"}, {"n": 28, "section": "التكييف والتبريد", "item": "تنظيف جميع مكيفات الاسبلت في الطابق السفلي", "itemOrig": "تنظيف جميع وحدات التكييف المنفصلة بالسفلي", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": null, "sys": "hvac", "floor": "b1", "noUpdate": true, "ready": "later", "cond": ""}, {"n": 29, "section": "التكييف والتبريد", "item": "استبدال منظّمات سرعة المراوح وقواطعها", "itemOrig": "استبدال وحدات التحكم بالسرعة والقواطع", "status": "fault", "statusRaw": "عطل مؤكد", "note": "كشف 12/11 أظهر منظّمات سرعة مراوح التبريد متضررة وغير عاملة. الإصلاح أو الاستبدال قيد التحقق", "date": "2026-11-12", "sys": "hvac", "floor": "", "noUpdate": false, "ready": "later", "cond": "التبريد غير ضروري لموسم الشتاء"}, {"n": 30, "section": "التكييف والتبريد", "item": "ضاغط التبريد (الكمبروسر)", "itemOrig": "وحدة ضاغط التبريد", "status": "fault", "statusRaw": "عطل مؤكد", "note": "كشف 12/11 أظهر ضاغط التبريد (الكمبروسر) متضرر وغير عامل. الإصلاح أو الاستبدال قيد التحقق", "date": "2026-11-12", "sys": "hvac", "floor": "", "noUpdate": false, "ready": "later", "cond": "التبريد غير ضروري لموسم الشتاء"}, {"n": 31, "section": "التكييف والتبريد", "item": "مضخات نظام التبريد", "itemOrig": "مضخات أجهزة الهواء لنظام التبريد، بحسب وصف التقرير", "status": "fault", "statusRaw": "عطل مؤكد", "note": "كشف 12/11 أظهر خمس مضخات محروقة وغير عاملة. الإصلاح أو الاستبدال قيد التحقق، ويُثبّت المسمّى الفني في تقرير الكشف.", "date": "2026-11-12", "sys": "hvac", "floor": "", "noUpdate": false, "ready": "later", "cond": "التبريد غير ضروري لموسم الشتاء"}, {"n": 32, "section": "غرف التبريد والتجميد", "item": "استبدال الوحدات الخارجية لغرف التبريد وأنابيبها وملحقاتها", "itemOrig": "استبدال الوحدات الخارجية والأنابيب والملحقات المرتبطة", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث", "date": null, "sys": "hvac", "floor": "", "noUpdate": true, "ready": "cond", "cond": "شرط لتشغيل غرف التبريد بالمطبخ"}, {"n": 33, "section": "الكهرباء", "item": "حوامل الكيابل", "itemOrig": "حوامل الكابلات", "status": "partial", "statusRaw": "منجز جزئيًا", "note": "تمت إزالة الحوامل المتضررة بتاريخ 11/11. تركيب البدائل بانتظار الانتهاء من أعمال اللياسة وتركيب حوامل الكيابل.", "date": "2026-11-11", "sys": "power", "floor": "", "noUpdate": false, "ready": "cond", "cond": "كهرباء المنطقة المتضررة تبقى مفصولة"}, {"n": 34, "section": "الكهرباء", "item": "كيابل المعدات", "itemOrig": "كابلات المعدات", "status": "partial", "statusRaw": "منجز جزئيًا", "note": "لم يرد تحديث", "date": "2026-11-11", "sys": "power", "floor": "", "noUpdate": true, "ready": "cond", "cond": "كهرباء المنطقة المتضررة تبقى مفصولة"}, {"n": 35, "section": "الكهرباء", "item": "استبدال مفاتيح التشغيل (الكونتاكتر) والقواطع الكهربائية", "itemOrig": "استبدال الكونتاكتورات والقواطع الكهربائية", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "power", "floor": "", "noUpdate": true, "ready": "block", "cond": "قواطع متضررة خطر كهربائي على المبنى كله"}, {"n": 36, "section": "الكهرباء", "item": "تنظيف اللوحات الكهربائية", "itemOrig": "", "status": "partial", "statusRaw": "منجز جزئيًا", "note": "بتاريخ 11/12 تم تنظيف جزئي للوحات الكهرباء مع كشف بعض الأعطال الإضافية", "date": null, "sys": "power", "floor": "", "noUpdate": false, "ready": "block", "cond": "أعطال في اللوحات يجب حصرها قبل السكن"}, {"n": 37, "section": "الطاقة الاحتياطية", "item": "فحص أجهزة الطاقة الاحتياطية (يو بي إس) والتأكد من سلامتها", "itemOrig": "فحص نظام التغذية غير المنقطعة والتحقق من سلامته التشغيلية", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "power", "floor": "", "noUpdate": true, "ready": "cond", "cond": "الأنظمة الحساسة تعمل دون حماية من انقطاع الكهرباء"}, {"n": 38, "section": "إنذار الحريق", "item": "استبدال حساسات الحريق (الدخان والحرارة)", "itemOrig": "استبدال كواشف الحريق", "status": "verify", "statusRaw": "قيد التحقق", "note": "يجري فحص شامل للنظام يوم غد الجمعة، بانتظار التقرير الرسمي وعروض الأسعار", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "cond", "cond": "مسموح فقط إن كانت لوحة الإنذار تعمل في بقية المبنى، والمنطقة المتضررة مغلقة، مع جولات حراسة حريق"}, {"n": 39, "section": "إنذار الحريق", "item": "استبدال كيابل إنذار الحريق", "itemOrig": "استبدال كابلات إنذار الحريق", "status": "verify", "statusRaw": "قيد التحقق", "note": "يجري فحص شامل للنظام يوم غد الجمعة، بانتظار التقرير الرسمي وعروض الأسعار", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "cond", "cond": "نفس شرط الحساسات"}, {"n": 40, "section": "إنذار الحريق", "item": "إصلاح برمجة لوحة إنذار الحريق", "itemOrig": "إصلاح برمجيات نظام الإنذار", "status": "verify", "statusRaw": "قيد التحقق", "note": "يجري فحص شامل للنظام يوم غد الجمعة، بانتظار التقرير الرسمي وعروض الأسعار", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "block", "cond": "بدون لوحة إنذار عاملة لا يوجد إنذار في المبنى كله"}, {"n": 41, "section": "إنذار الحريق", "item": "كيابل التحكم ببوابات الهواء الآلية (الدامبر)", "itemOrig": "كابلات التحكم ببوابات الهواء المزودة بمحركات", "status": "verify", "statusRaw": "قيد التحقق", "note": "يجري فحص شامل للنظام يوم غد الجمعة، بانتظار التقرير الرسمي وعروض الأسعار", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "cond", "cond": "تُغلق بوابات الهواء يدويًا"}, {"n": 42, "section": "مكافحة الحريق", "item": "استبدال صناديق خراطيم الحريق", "itemOrig": "استبدال خزائن بكرات خراطيم الحريق", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "cond", "cond": "تُوفَّر طفايات إضافية في مواقعها مؤقتًا"}, {"n": 43, "section": "مكافحة الحريق", "item": "استبدال صفارات الإنذار والأضواء التحذيرية الخارجية", "itemOrig": "استبدال أجهزة الإنذار الصوتي والضوئي الخارجية", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "block", "cond": "بدون صفارات لا يُسمع الإنذار"}, {"n": 44, "section": "مكافحة الحريق", "item": "استبدال رشاشات الحريق (السبرنكلر)", "itemOrig": "استبدال رشاشات الحريق", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "block", "cond": "شبكة الرشاشات يجب أن تعمل في الأماكن المسكونة"}, {"n": 45, "section": "مكافحة الحريق", "item": "إعادة تأهيل صمامات وأغطية أسطوانات ثاني أكسيد الكربون", "itemOrig": "مجموعة الغلاف وإعادة تأهيل صمامات أسطوانات ثاني أكسيد الكربون وفق وصف القائمة", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "cond", "cond": "المنطقة المحمية بثاني أكسيد الكربون تبقى دون تشغيل"}, {"n": 46, "section": "مكافحة الحريق", "item": "استبدال لوحة الإطفاء الآلي في غرفة الغلايات (البويلر)", "itemOrig": "استبدال لوحة نظام الإطفاء في غرفة الغلايات", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "cond", "cond": "لا تُشغَّل الغلايات قبل لوحة الإطفاء"}, {"n": 47, "section": "مكافحة الحريق", "item": "الغطاء الواقي لزر تشغيل الإطفاء اليدوي", "itemOrig": "الغطاء الواقي لزر الإطلاق اليدوي", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 48, "section": "مكافحة الحريق", "item": "فحص طفايات الحريق واستبدال المتضرر", "itemOrig": "فحص الطفايات واستبدال المتضرر", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "block", "cond": "طفايات صالحة في كل طابق"}, {"n": 49, "section": "مكافحة الحريق", "item": "فحص مضخات الحريق", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "block", "cond": "مضخات الحريق هي قلب الشبكة"}, {"n": 50, "section": "مكافحة الحريق", "item": "استبدال كيابل مضخات الحريق", "itemOrig": "استبدال كابلات مضخات الحريق", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "block", "cond": "مضخات الحريق هي قلب الشبكة"}, {"n": 51, "section": "مكافحة الحريق", "item": "استبدال أنابيب شبكة الحريق", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "block", "cond": "الشبكة يجب أن تكون سليمة ومضغوطة"}, {"n": 52, "section": "مكافحة الحريق", "item": "إعادة تعبئة أسطوانات غاز الإطفاء (إف إم 200)", "itemOrig": "إعادة تعبئة أسطوانات غاز الإطفاء النظيف", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "cond", "cond": "الغرف المحمية بالغاز تبقى دون تشغيل أو بحراسة"}, {"n": 53, "section": "مكافحة الحريق", "item": "إعادة تعبئة أسطوانات ثاني أكسيد الكربون", "itemOrig": "", "status": "progress", "statusRaw": "قيد التنفيذ", "note": "أُجري فحص عام لنظام مكافحة الحريق بتاريخ 12/11. أُرسل التقرير وعروض الأسعار بانتظار الموافقات", "date": "2026-11-12", "sys": "fire", "floor": "", "noUpdate": false, "ready": "cond", "cond": "المنطقة المحمية بثاني أكسيد الكربون تبقى دون تشغيل"}, {"n": 54, "section": "التحكم المركزي بالمبنى", "item": "استبدال وحدات نظام التحكم المركزي", "itemOrig": "استبدال وحدات النظام", "status": "verify", "statusRaw": "قيد التحقق", "note": "يُجرى فحص شامل للنظام يوم الثلاثاء المقبل، بانتظار التقرير الرسمي وعروض الأسعار", "date": "2026-11-12", "sys": "bldg", "floor": "", "noUpdate": false, "ready": "later", "cond": "يمكن تشغيل الأنظمة يدويًا مؤقتًا"}, {"n": 55, "section": "التحكم المركزي بالمبنى", "item": "إصلاح برمجة نظام التحكم المركزي", "itemOrig": "إصلاح البرمجيات", "status": "verify", "statusRaw": "قيد التحقق", "note": "يُجرى فحص شامل للنظام يوم الثلاثاء المقبل، بانتظار التقرير الرسمي وعروض الأسعار", "date": "2026-11-12", "sys": "bldg", "floor": "", "noUpdate": false, "ready": "later", "cond": "يمكن تشغيل الأنظمة يدويًا مؤقتًا"}, {"n": 56, "section": "نظام الري", "item": "استبدال الأنابيب المتضررة", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "بحاجة لإتمام أعمال تشغيل الكهرباء لفحص النظام واستخراج النتائج", "date": "2026-11-12", "sys": "water", "floor": "", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 57, "section": "نظام الري", "item": "تنظيف المضخات واختبارها", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "بحاجة لإتمام أعمال تشغيل الكهرباء لفحص النظام واستخراج النتائج", "date": "2026-11-12", "sys": "water", "floor": "", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 58, "section": "نظام الري", "item": "تنظيف وحدات التحكم وتأمين بعض القطع", "itemOrig": "", "status": "verify", "statusRaw": "قيد التحقق", "note": "بحاجة لإتمام أعمال تشغيل الكهرباء لفحص النظام واستخراج النتائج", "date": "2026-11-12", "sys": "water", "floor": "", "noUpdate": false, "ready": "later", "cond": ""}, {"n": 59, "section": "شبكة المياه", "item": "استبدال الأنابيب المتضررة", "itemOrig": "", "status": "done", "statusRaw": "مكتمل", "note": "تم إنجاز دورتي مياه رئيسيتين واستبدال شبكة المواسير التالفة", "date": "2026-11-12", "sys": "water", "floor": "", "noUpdate": false, "ready": "block", "cond": ""}, {"n": 60, "section": "نظام التدفئة", "item": "استبدال أنابيب الغلايات (البويلر) وعزلها", "itemOrig": "استبدال أنابيب الغلايات وعزلها", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "water", "floor": "", "noUpdate": true, "ready": "cond", "cond": "التدفئة والمياه الساخنة: ضرورية قبل البرد"}, {"n": 61, "section": "نظام التدفئة", "item": "أنابيب المضخات والتغذية الكهربائية ثلاثية الفاز", "itemOrig": "أنابيب المضخات والتغذية الكهربائية ثلاثية الطور", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "water", "floor": "", "noUpdate": true, "ready": "cond", "cond": "التدفئة والمياه الساخنة: ضرورية قبل البرد"}, {"n": 62, "section": "الإنارة", "item": "استبدال إنارة السقف (60 × 60 سم) في الطابق السفلي", "itemOrig": "استبدال وحدات أو ألواح الإنارة 60 × 60 سم بالطابق السفلي", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "power", "floor": "b1", "noUpdate": true, "ready": "cond", "cond": "إنارة مؤقتة في الطابق السفلي"}, {"n": 63, "section": "المولدات", "item": "استبدال لوحة الكهرباء الخاصة بالمولد", "itemOrig": "استبدال لوحة الديودات", "status": "done", "statusRaw": "مكتمل", "note": "تم الإنجاز واستبدال لوحة الكهرباء وتشغيل المولد", "date": "2026-11-12", "sys": "power", "floor": "", "noUpdate": false, "ready": "block", "cond": "المولد مصدر الطاقة الاحتياطي لأنظمة الحريق"}, {"n": 64, "section": "المولدات", "item": "استبدال بوابة الهواء (الدامبر)", "itemOrig": "استبدال بوابة الهواء", "status": "verify", "statusRaw": "قيد التحقق", "note": "لم يرد تحديث.", "date": null, "sys": "power", "floor": "", "noUpdate": true, "ready": "cond", "cond": "تهوية غرفة المولد عند تشغيله"}, {"n": 65, "section": "المصاعد", "item": "كشف وصيانة المصاعد", "itemOrig": "كشف وصيانة", "status": "verify", "statusRaw": "قيد التحقق", "note": "حين انتهاء العمل وخروج العمال", "date": null, "sys": "bldg", "floor": "", "noUpdate": false, "ready": "cond", "cond": "لا تُستخدم المصاعد قبل الكشف — الاعتماد على الدرج"}]};
+  /* ==REG_END== */
+  /* ==RDY_START== */
+  var RDY = {"asOf": "تقييم حتى مساء الخميس 12 نوفمبر", "buildingOk": ["المصاعد", "الإنترنت", "الكاميرات", "المولد"], "services": [{"k": "clean", "icon": "🧹", "label": "النظافة"}, {"k": "power", "icon": "⚡", "label": "الكهرباء"}, {"k": "water", "icon": "💧", "label": "المياه"}, {"k": "heat", "icon": "♨️", "label": "التدفئة"}, {"k": "cool", "icon": "❄️", "label": "التكييف"}], "areas": [{"k": "f1", "label": "الطابق الأول"}, {"k": "g", "label": "الطابق الأرضي"}, {"k": "b", "label": "الطابق السفلي (التشغيلي)"}, {"k": "x", "label": "ممر الحريق — السفلي", "isolated": true, "work": "معزول وتحت الإصلاح: اللياسة، وتركيب الدكت وحوامل الكيابل، واستبدال الأجزاء المتضررة.", "refs": [11, 14, 15, 33, 34, 23, 24]}], "shared": {"heat": {"s": "unk", "why": "يُقيَّم الضرر بعد توصيل الكهرباء للنظام صباح الجمعة 13 نوفمبر. يشمل الغلايات وأنابيبها والمياه الساخنة.", "refs": [60, 61, 46]}, "cool": {"s": "no", "why": "ضاغط التبريد و5 مضخات ومنظّمات سرعة المراوح معطلة. يُدرس تشغيل جزئي أو حل مؤقت إلى أن يُصلح النظام كاملًا.", "refs": [29, 30, 31, 2, 27]}}, "cells": {"f1": {"clean": {"s": "ok", "why": "اكتمل التنظيف العميق وتنظيف الدكت في الطابق الأول، وكل الأثاث غُسل وعُقّم. يُستحسن معاينة مفروشات الجناح الثاني لأنها نُظّفت يوم فكّ الدكت فيه.", "refs": [1, 2]}, "power": {"s": "ok", "why": "الإنارة والكهرباء تعمل. أعطال اللوحات في لوحات توزيع تغذي بعض أنظمة المبنى، وتحديدها جارٍ (لا تؤثر على الإنارة والكهرباء العامة).", "refs": [36, 35]}, "water": {"s": "ok", "why": "دورات المياه تعمل. الأعطال محصورة في الطابق الأرضي.", "refs": [59]}}, "g": {"clean": {"s": "part", "why": "تنظيف الدكت اكتمل، والتنظيف العميق جارٍ.", "refs": [1, 2]}, "power": {"s": "ok", "why": "الإنارة والكهرباء تعمل. أعطال اللوحات في لوحات توزيع تغذي بعض أنظمة المبنى، وتحديدها جارٍ (لا تؤثر على الإنارة والكهرباء العامة).", "refs": [36, 35]}, "water": {"s": "ok", "why": "دورات المياه تعمل عدا حمامين من نحو 6 في نفس الطابق: تكسير أرضية دورة مياه لتمرير الأنابيب، واستبدال المواسير (الجمعة)، وسقف جبس في دورتي مياه. مياه المطابخ تعمل.", "refs": [19, 20, 59]}}, "b": {"clean": {"s": "part", "why": "المطبخ نُظّف ويُقفل الجمعة. تنظيف الغرف الفنية بلا إفادة.", "refs": [6, 5]}, "power": {"s": "ok", "why": "الإنارة والكهرباء تعمل. أعطال اللوحات في لوحات توزيع تغذي بعض أنظمة المبنى، وتحديدها جارٍ (لا تؤثر على الإنارة والكهرباء العامة). إنارة السقف المتضررة في الطابق السفلي مسجلة للاستبدال.", "refs": [36, 35, 62]}, "water": {"s": "ok", "why": "المياه تعمل، ومياه المطابخ كلها تعمل. المياه الساخنة مرتبطة بالتدفئة (انظر خانة التدفئة).", "refs": [59]}}}, "parallel": [{"icon": "🔥", "label": "الإنذار والإطفاء", "why": "لا يعيق التشغيل والسكن، ويُصلَح في مسار موازٍ لأنه يحتاج وقتًا: عروض الحماية من الحريق بانتظار الاعتماد من شركة التأمين، ولوحة الإنذار تُفحص الجمعة.", "refs": [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]}]};
+  /* ==RDY_END== */
+
+  // سطر واحد لكل نظام في الملخص — يكتبه المدير (أو Claude ويعتمده المدير)
+  var LINES = {
+    clean:"الطابق الأول مكتمل، والأرضي جارٍ. التعقيم بعد تركيب الستائر.",
+    civil:"سقف الطابق السفلي بنحو 90%. دهان المنطقة المتضررة يُسلَّم السبت.",
+    hvac:"الدكت نُظّف. التبريد: أعطال يُدرس لها تشغيل جزئي أو حل مؤقت. التدفئة: تقييم بعد توصيل الكهرباء.",
+    power:"الكهرباء تعمل عدا الجزء المتضرر. تركيب حوامل الكابلات بعد جفاف اللياسة.",
+    fire:"مستمر بالتوازي: العروض بانتظار الاعتماد، وإعادة تعبئة البودرة وثاني أكسيد الكربون.",
+    water:"أغلب دورات المياه تعمل. الري ينتظر تشغيل الكهرباء.",
+    bldg:"المصاعد والإنترنت والكاميرات تعمل. فحص نظام التحكم المركزي الثلاثاء 17 نوفمبر."
+  };
+  var TODAY = ["اكتمال تنظيف مجاري الهواء في الطابقين الأول والأرضي","اكتمال التنظيف العميق للطابق الأول","اكتمال غسيل الستائر","فحص نظامي مكافحة الحريق والتبريد، وتحديد الأعطال","السقف في الطابق السفلي بنحو 90%"];
+  var NEXT = ["تركيب الستائر (4 فرق)، ثم بدء تعقيم مجاري الهواء","إقفال المطبخ نهائيًا","تكسير أرضية دورة المياه لتمرير الأنابيب","استبدال مواسير المياه التالفة وإنجاز دورتي مياه رئيسيتين"];
+
+  var ST = {done:["مكتمل","var(--s-done)"], progress:["قيد التنفيذ","var(--s-progress)"], partial:["منجز جزئيًا","var(--s-partial)"],
+            verify:["قيد التحقق","var(--s-verify)"], fault:["عطل مؤكد","var(--s-fault)"]};
+  var ORDER = ["done","partial","progress","verify","fault"];
+  var items = REG.items || [], systems = REG.systems || [];
+  var state = {st:"all", q:""};
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function pct(a,b){ return b ? Math.round(a/b*100) : 0; }
+  function done(list){ return list.filter(function(i){ return i.status==="done"; }).length; }
+  function day(d){ try { return new Date(d+"T12:00:00Z").toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",{day:"numeric",month:"long"}); } catch(e){ return d; } }
+
+  // ----- الملخص -----
+  var total = items.length, dn = done(items), P = pct(dn,total);
+  $("stamp").textContent = (REG.asof || "").replace(/\s*\|\s*/g," · ") + " (بتوقيت بيروت) · المصدر: ملف المقاول";
+  // جاهزية التشغيل = خانات المصفوفة في مناطق التشغيل: جاهز = 1، جزئي = نصف، غير ذلك = 0
+  var RS = (function(){
+    var act = (RDY.areas||[]).filter(function(a){ return !a.isolated; }), sc = 0, n = 0, ready = 0;
+    act.forEach(function(a){
+      var all = true;
+      (RDY.services||[]).forEach(function(s){
+        var c = (RDY.shared&&RDY.shared[s.k]) || ((RDY.cells[a.k]||{})[s.k]) || {s:"ok"};
+        if(c.s==="na"||c.s==="par") return;
+        n++; sc += (c.s==="ok"||c.s==="temp") ? 1 : c.s==="part" ? .5 : 0;
+        if(!(c.s==="ok"||c.s==="temp")) all = false;
+      });
+      if(all) ready++;
+    });
+    return {pct: n ? Math.round(sc/n*100) : 0, ready: ready, areas: act.length};
+  })();
+  $("ring").style.setProperty("--p", RS.pct); $("ringPct").textContent = RS.pct + "%";
+  $("ringSub").textContent = "جاهزية التشغيل · " + RS.ready + " من " + RS.areas + " مناطق جاهزة بالكامل";
+  var cDone = dn, cAct = items.filter(function(i){ return i.status==="progress"||i.status==="partial"; }).length, cWait = total - cDone - cAct;
+  $("wcCount").textContent = total + " بندًا في ملف المقاول";
+  $("wcBar").innerHTML = '<i style="width:'+(cDone/total*100)+'%;background:var(--s-done)"></i><i style="width:'+(cAct/total*100)+'%;background:var(--s-progress)"></i>';
+  $("wcLeg").innerHTML = '<span><i style="background:var(--s-done)"></i>مكتمل <b class="num">'+cDone+'</b></span><span><i style="background:var(--s-progress)"></i>قيد العمل <b class="num">'+cAct+'</b></span><span><i style="background:var(--grid)"></i>بانتظار الفحص أو الاعتماد <b class="num">'+cWait+'</b></span>';
+  $("totalN").textContent = total;
+  $("sysList").innerHTML = systems.map(function(s){
+    var l = items.filter(function(i){ return i.sys===s.key; }); if(!l.length) return "";
+    var d = done(l), a = l.filter(function(i){ return i.status==="progress"||i.status==="partial"; }).length;
+    return '<div class="srow"><div class="nm">'+esc(s.label)+'</div><div class="pc num" style="font-size:11.5px;color:var(--muted);font-weight:700;white-space:nowrap">'+d+' مكتمل · '+a+' جارٍ · من '+l.length+'</div>'+
+           '<div class="mini"><i style="width:'+(d/l.length*100)+'%"></i><i class="a" style="width:'+(a/l.length*100)+'%"></i></div><div class="ln">'+esc(LINES[s.key]||"")+'</div></div>';
+  }).join("");
+  $("todayList").innerHTML = TODAY.map(function(t){ return "<li>"+esc(t)+"</li>"; }).join("");
+  $("nextList").innerHTML = NEXT.map(function(t){ return "<li>"+esc(t)+"</li>"; }).join("");
+
+  // ----- التفصيلي -----
+  function stats(){
+    var c={}; ORDER.forEach(function(k){ c[k]=0; }); items.forEach(function(i){ c[i.status]++; });
+    $("stats").innerHTML = '<span><b>'+P+'%</b> إقفال</span><span><b>'+dn+'</b> من '+total+' مكتمل</span><span class="f"><b>'+c.fault+'</b> أعطال مؤكدة</span><span><b>'+items.filter(function(i){return i.noUpdate;}).length+'</b> تحت الإجراء</span>';
+    var defs = [["all","الكل",total]].concat(ORDER.map(function(k){ return [k, ST[k][0], c[k]]; })).concat([["stale","تحت الإجراء",items.filter(function(i){return i.noUpdate;}).length]]);
+    $("filters").innerHTML = defs.filter(function(d){ return d[2]||d[0]==="all"; }).map(function(d){
+      return '<button class="chip'+(state.st===d[0]?' on':'')+'" data-st="'+d[0]+'" aria-pressed="'+(state.st===d[0])+'">'+(ST[d[0]]?'<span class="dot" style="background:'+ST[d[0]][1]+'"></span>':'')+d[1]+' <span class="num">'+d[2]+'</span></button>';
+    }).join("") + '<input class="search" id="q" type="search" placeholder="بحث…" aria-label="بحث في البنود" value="'+esc(state.q)+'">';
+    Array.prototype.forEach.call($("filters").querySelectorAll(".chip"), function(b){ b.addEventListener("click", function(){ state.st=b.getAttribute("data-st"); detail(); }); });
+    var q=$("q"); q.addEventListener("input", function(){ state.q=q.value; var pos=q.selectionStart; detail(); var n=$("q"); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} });
+  }
+  var openSys = {};
+  function detail(){
+    stats();
+    var q = state.q.trim(), filtering = state.st!=="all" || q;
+    var html = systems.map(function(s){
+      var all = items.filter(function(i){ return i.sys===s.key; }); if(!all.length) return "";
+      var l = all.filter(function(i){
+        if(state.st==="stale" && !i.noUpdate) return false;
+        if(state.st!=="all" && state.st!=="stale" && i.status!==state.st) return false;
+        if(q && (i.item+" "+i.section+" "+i.note).indexOf(q)<0) return false; return true; });
+      if(!l.length) return "";
+      var open = filtering || openSys[s.key];
+      return '<details class="acc" data-sys="'+s.key+'"'+(open?' open':'')+'><summary><span class="t">'+esc(s.label)+'<small class="num">'+l.length+(l.length!==all.length?' من '+all.length:'')+' بند</small></span>'+
+        '<span class="p num">'+pct(done(all),all.length)+'%</span></summary>'+
+        l.map(function(i){
+          var st = ST[i.status]||ST.verify;
+          var meta = esc(i.section) + (i.noUpdate ? ' · <span class="stale">تحت الإجراء</span>' : (i.date ? ' · آخر إفادة '+esc(day(i.date)) : ''));
+          var note = (i.note && i.note.indexOf("لم يرد تحديث")!==0) ? esc(i.note) : '';
+          return '<div class="row" tabindex="0" role="button" aria-expanded="false"><span class="n num">'+i.n+'</span><span class="it">'+esc(i.item)+'</span>'+
+            '<span class="st"><span class="dot" style="background:'+st[1]+'"></span>'+st[0]+'</span>'+
+            '<div class="det">'+note+'<span class="m">'+meta+'</span>'+(i.itemOrig?'<span class="orig">نص المقاول: '+esc(i.itemOrig)+'</span>':'')+'</div></div>';
+        }).join("")+'</details>';
+    }).join("");
+    $("acc").innerHTML = html || '<div class="empty">لا بنود تطابق التصفية.</div>';
+    Array.prototype.forEach.call($("acc").querySelectorAll(".row"), function(r){
+      function t(){ r.classList.toggle("open"); r.setAttribute("aria-expanded", r.classList.contains("open")); }
+      r.addEventListener("click", t); r.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); t(); } });
+    });
+    Array.prototype.forEach.call($("acc").querySelectorAll(".acc"), function(d){
+      d.addEventListener("toggle", function(){ if(!filtering){ var k=d.getAttribute("data-sys"); if(d.open) openSys[k]=1; else delete openSys[k]; } });
+    });
+  }
+
+  // ----- جاهزية التشغيل: مناطق × خدمات -----
+  var CS = {ok:["جاهز","var(--s-done)","✓"], part:["جزئي","var(--warn)","~"], no:["غير جاهز","var(--s-fault)","✕"],
+            par:["مسار موازٍ","var(--s-progress)","⟳"], unk:["بانتظار فحص","var(--s-verify)","؟"], na:["لا ينطبق","transparent","–"], iso:["معزول","var(--s-verify)",""]};
+  var RANK = {no:4, unk:3, part:2, ok:1, par:0, na:0};   // «المسار الموازي» لا يمنع الجاهزية
+  function cellOf(a, s){
+    if(a.isolated) return {s:"iso", why:"المنطقة معزولة، والصيانة فيها مستمرة بالتوازي مع التشغيل.", refs:[]};
+    if(RDY.shared && RDY.shared[s]) return RDY.shared[s];
+    return (RDY.cells[a.k]||{})[s] || {s:"ok", why:"لا بنود مفتوحة تخص هذه الخدمة في هذه المنطقة.", refs:[]};
+  }
+  function areaState(a){
+    if(a.isolated) return "iso";
+    var worst = "na";
+    RDY.services.forEach(function(s){ var c = cellOf(a, s.k).s; if(RANK[c] > RANK[worst]) worst = c; });
+    return worst === "na" ? "ok" : worst;
+  }
+  var selCell = null;
+  function readiness(){
+    var act = RDY.areas.filter(function(a){ return !a.isolated; });
+    var ready = act.filter(function(a){ return areaState(a)==="ok"; });
+    var rp = pct(ready.length, act.length);
+    $("rRing").style.setProperty("--p", rp); $("rPct").textContent = ready.length + "/" + act.length;
+    // الأقرب للجاهزية = أقل عدد خانات غير جاهزة
+    var near = act.slice().sort(function(x,y){
+      function bad(a){ return RDY.services.reduce(function(n,s){ var c=cellOf(a,s.k).s; return n + (c==="no"?2:c==="part"?1:0); },0); }
+      return bad(x)-bad(y); })[0];
+    $("rWhat").textContent = ready.length ? (ready.length + " من " + act.length + " مناطق جاهزة للتشغيل") : "لا توجد منطقة جاهزة للتشغيل بعد";
+    var sharedNames = Object.keys(RDY.shared||{}).filter(function(k){ return RDY.shared[k].s!=="par"; }).map(function(k){ var s = RDY.services.filter(function(x){return x.k===k;})[0]; return s ? s.label : k; });
+    $("rSub").textContent = (near ? "الأقرب: " + near.label + ". " : "") + (sharedNames.length ? "العائق المشترك: " + sharedNames.join("، ") + "." : "");
+    $("okStrip").innerHTML = '<b>✓ تعمل في كامل المبنى:</b> ' + esc((RDY.buildingOk||[]).join("، "));
+    $("rShared").innerHTML = Object.keys(RDY.shared||{}).sort(function(a,b){ return (RDY.shared[a].s==="par")-(RDY.shared[b].s==="par"); }).map(function(k){
+      var s = RDY.services.filter(function(x){return x.k===k;})[0]||{icon:"",label:k}, c = RDY.shared[k], par = c.s==="par";
+      return '<div class="callout '+(par?'para':'decide')+'"><span class="ic">'+s.icon+'</span><div><b>'+esc(s.label)+(par?' (مسار موازٍ)':' — '+CS[c.s][0])+':</b> '+esc(c.why)+'</div></div>';
+    }).join("");
+    $("rPar").innerHTML = (RDY.parallel||[]).map(function(x){
+      return '<div class="callout para"><span class="ic">'+x.icon+'</span><div><b>'+esc(x.label)+':</b> '+esc(x.why)+
+        (x.refs&&x.refs.length?'<span class="refs" style="display:block;font-size:11.5px;color:var(--faint)">بنود الإكسل: '+x.refs[0]+'–'+x.refs[x.refs.length-1]+'</span>':'')+'</div></div>';
+    }).join("");
+    var head = '<thead><tr><th class="ar"></th>'+RDY.services.map(function(s){ return '<th scope="col" title="'+esc(s.label)+'">'+s.icon+'<small>'+esc(s.label)+'</small></th>'; }).join("")+'</tr></thead>';
+    var body = '<tbody>'+RDY.areas.map(function(a){
+      var st = areaState(a);
+      if(a.isolated) return '<tr><th class="ar" scope="row">'+esc(a.label)+'<small style="color:var(--s-progress)">🔧 معزول — تحت الإصلاح</small></th>'+
+        '<td colspan="'+RDY.services.length+'" class="work">'+esc(a.work||"معزول")+(a.refs&&a.refs.length?'<span class="refs">بنود الإكسل: '+a.refs.join(" · ")+'</span>':'')+'</td></tr>';
+      return '<tr><th class="ar" scope="row">'+esc(a.label)+'<small style="color:'+CS[st][1]+'">'+CS[st][0]+'</small></th>'+
+        RDY.services.map(function(s){ var c = cellOf(a, s.k), key = a.k+"|"+s.k;
+          return '<td><button class="cell '+c.s+(selCell===key?' sel':'')+'" data-k="'+key+'" aria-label="'+esc(a.label+" — "+s.label+": "+CS[c.s][0])+'">'+CS[c.s][2]+'</button></td>'; }).join("")+'</tr>';
+    }).join("")+'</tbody>';
+    $("mx").innerHTML = '<colgroup><col class="c-ar">'+RDY.services.map(function(){return '<col>';}).join("")+'</colgroup>' + head + body;
+    $("mxLegend").innerHTML = ["ok","part","unk","no"].map(function(k){ return '<span><i class="cell '+k+'" style="width:12px;height:12px;border-radius:4px"></i>'+CS[k][0]+'</span>'; }).join("");
+    Array.prototype.forEach.call($("mx").querySelectorAll(".cell"), function(b){
+      b.addEventListener("click", function(){ selCell = b.getAttribute("data-k"); readiness(); showWhy(); });
+    });
+    $("rAsOf").textContent = RDY.asOf || "";
+    if(selCell) showWhy();
+  }
+  function showWhy(){
+    var p = selCell.split("|"), a = RDY.areas.filter(function(x){return x.k===p[0];})[0], s = RDY.services.filter(function(x){return x.k===p[1];})[0];
+    var c = cellOf(a, s.k), w = $("why"); w.hidden = false;
+    w.innerHTML = '<b>'+esc(a.label)+' · '+s.icon+' '+esc(s.label)+': <span style="color:'+(CS[c.s][1]==="transparent"?"var(--faint)":CS[c.s][1])+'">'+CS[c.s][0]+'</span></b><br>'+esc(c.why)+
+      (c.refs && c.refs.length ? '<span class="refs">بنود الإكسل: '+c.refs.map(function(n){ return '<a data-n="'+n+'">'+n+'</a>'; }).join(" · ")+'</span>' : '');
+    Array.prototype.forEach.call(w.querySelectorAll("a[data-n]"), function(l){
+      l.addEventListener("click", function(){ state.st="all"; state.q=""; location.hash="details";
+        setTimeout(function(){ var n=l.getAttribute("data-n"); var it=items.filter(function(i){return String(i.n)===n;})[0]; if(!it) return;
+          var d=document.querySelector('.acc[data-sys="'+it.sys+'"]'); if(d) d.open=true;
+          var rows=document.querySelectorAll('.acc[data-sys="'+it.sys+'"] .row'); Array.prototype.forEach.call(rows,function(r){ if(r.querySelector(".n").textContent===n){ r.classList.add("open"); r.scrollIntoView({block:"center"}); } }); }, 60); });
+    });
+  }
+
+  // ----- التبويبات (تُحفظ في #) -----
+  function show(which){
+    var v = which === "details" ? "det" : which === "readiness" ? "rdy" : "sum";
+    ["sum","rdy","det"].forEach(function(k){ $("v-"+k).hidden = k!==v; $("t-"+k).setAttribute("aria-selected", k===v); });
+    if(v==="det") detail(); if(v==="rdy") readiness();
+  }
+  $("t-rdy").addEventListener("click", function(){ location.hash = "readiness"; });
+  $("t-sum").addEventListener("click", function(){ location.hash = "summary"; });
+  $("t-det").addEventListener("click", function(){ location.hash = "details"; });
+  $("toDet").addEventListener("click", function(){ location.hash = "details"; window.scrollTo(0,0); });
+  window.addEventListener("hashchange", function(){ show(location.hash.slice(1)); });
+  show(location.hash.slice(1));
+})();
+</script>
+
+</body>
+</html>
