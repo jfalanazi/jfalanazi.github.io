@@ -114,6 +114,10 @@
   .row .n{font-size:11.5px; color:var(--faint); font-weight:800}
   .row .it{font-size:13px; font-weight:600}
   .row .st{font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; color:var(--muted)}
+  .row .chev{width:7px; height:7px; border-right:2px solid var(--faint); border-bottom:2px solid var(--faint); transform:rotate(45deg) translateY(-2px); margin-inline-start:6px; transition:transform .15s; display:inline-block}
+  .row.open .chev{transform:rotate(-135deg) translateY(-1px)}
+  .row .hasnote{font-size:11px; margin-inline-start:4px}
+  .row.open{background:var(--surface-2)}
   .row .det{grid-column:2/-1; font-size:12px; color:var(--muted); white-space:pre-line; display:none}
   .row.open .det{display:block}
   .row .det .m{color:var(--faint); display:block; margin-top:2px}
@@ -294,7 +298,7 @@
 
   // ----- الملخص -----
   var total = items.length, dn = done(items), P = pct(dn,total);
-  $("stamp").textContent = (REG.asof || "").replace(/\s*\|\s*/g," · ") + " (بتوقيت بيروت) · المصدر: ملف المقاول";
+  $("stamp").textContent = (REG.asof || "").split("|")[0].trim();
   // جاهزية التشغيل = خانات المصفوفة في مناطق التشغيل: جاهز = 1، جزئي = نصف، غير ذلك = 0
   var RS = (function(){
     var act = (RDY.areas||[]).filter(function(a){ return !a.isolated; }), sc = 0, n = 0, ready = 0;
@@ -356,7 +360,7 @@
           var meta = esc(i.section) + (i.noUpdate ? ' · <span class="stale">تحت الإجراء</span>' : (i.date ? ' · آخر إفادة '+esc(day(i.date)) : ''));
           var note = (i.note && i.note.indexOf("لم يرد تحديث")!==0) ? esc(i.note) : '';
           return '<div class="row" tabindex="0" role="button" aria-expanded="false"><span class="n num">'+i.n+'</span><span class="it">'+esc(i.item)+'</span>'+
-            '<span class="st"><span class="dot" style="background:'+st[1]+'"></span>'+st[0]+'</span>'+
+            '<span class="st"><span class="dot" style="background:'+st[1]+'"></span>'+st[0]+(note?'<span class="hasnote" title="فيه ملاحظة">📝</span>':'')+'<span class="chev" aria-hidden="true"></span></span>'+
             '<div class="det">'+note+'<span class="m">'+meta+'</span>'+(i.itemOrig?'<span class="orig">نص المقاول: '+esc(i.itemOrig)+'</span>':'')+'</div></div>';
         }).join("")+'</details>';
     }).join("");
