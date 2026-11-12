@@ -95,11 +95,11 @@ html = html.replace(liveCall, "Promise.resolve([FROZEN_DB, FROZEN_USER]).then(fu
 html = html.replace('  "use strict";', '  "use strict";\n' + FROZEN);
 
 const stamp = new Date(generatedAt).toLocaleString("ar-SA-u-ca-gregory-nu-latn", {
-  timeZone: "Asia/Riyadh", weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit"
+  timeZone: "Asia/Beirut", weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit"
 });
 const bannerRe = /<div class="report-banner">[^<]*<\/div>/;
 if (!bannerRe.test(html)) throw new Error("لم أجد شريط التقرير");
-html = html.replace(bannerRe, '<div class="report-banner">📄 تقرير معالجة آثار الحريق — آخر تحديث: ' + stamp + "</div>");
+html = html.replace(bannerRe, '<div class="report-banner">📄 تقرير معالجة آثار الحريق — آخر تحديث: ' + stamp + " (بتوقيت بيروت)</div>");
 
 // ---------- 3) فحص سلامة السكربت ----------
 const js = html.match(/<script>([\s\S]*)<\/script>/);
