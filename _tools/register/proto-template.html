@@ -288,7 +288,9 @@
   var ST = {done:["مكتمل","var(--s-done)"], progress:["قيد التنفيذ","var(--s-progress)"], partial:["منجز جزئيًا","var(--s-partial)"],
             verify:["قيد التحقق","var(--s-verify)"], fault:["عطل مؤكد","var(--s-fault)"]};
   var ORDER = ["done","partial","progress","verify","fault"];
-  var items = REG.items || [], systems = REG.systems || [];
+  // البنود الملغاة لا تدخل في أي حساب
+  var cancelled = (REG.items || []).filter(function(i){ return i.status==="cancelled"; });
+  var items = (REG.items || []).filter(function(i){ return i.status!=="cancelled"; }), systems = REG.systems || [];
   var state = {st:"all", q:""};
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }

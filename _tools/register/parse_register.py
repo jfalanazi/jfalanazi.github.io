@@ -20,6 +20,7 @@ def col(key):
             return j
     raise SystemExit('عمود مفقود: '+key)
 C = {k: col(k) for k in COLS}
+C_FLOOR = next((j for j,h in enumerate(hdr) if 'الطابق' in h), None)
 # عنوان «آخر تحديث» من أعلى الورقة
 asof = next((str(r[0]) for r in rows[:hi] if r and r[0] and 'آخر تحديث' in str(r[0])), '')
 
@@ -59,13 +60,14 @@ def system_of(sec):
         if any(x in sec for x in keys): return k
     return 'other'
 def floor_of(sec, item):
-    t = sec+' '+item
-    if 'السفلي' in t: return 'b1'
-    if 'الأرضي' in t: return 'g'
-    if 'الأول' in t and 'السفلي الأول' not in t: return 'f1'
+    t = ' '+sec+' '+item+' '
+    if re.search(r'السفلي(?![\u0621-\u064A])', t): return 'b1'
+    if re.search(r'الأرضي(?![\u0621-\u064A])', t): return 'g'
+    if re.search(r'الأول(?![\u0621-\u064A])', t) and 'السفلي الأول' not in t: return 'f1'
     return ''
+FLOOR_COL = {'الأول':'f1','الأرضي':'g','السفلي':'b1','ممر الحريق':'x','عام':''}
 
-STATUS = {'مكتمل':'done','قيد التنفيذ':'progress','منجز جزئيًا':'partial','منجز جزئيا':'partial','قيد التحقق':'verify','عطل مؤكد':'fault'}
+STATUS = {'ملغى':'cancelled','ملغي':'cancelled','مكتمل':'done','قيد التنفيذ':'progress','منجز جزئيًا':'partial','منجز جزئيا':'partial','قيد التحقق':'verify','عطل مؤكد':'fault'}
 items, unknown = [], set()
 for r in rows[hi+1:]:
     if not r or r[C['num']] in (None,''): continue
@@ -81,7 +83,8 @@ for r in rows[hi+1:]:
     if not sk: unknown.add(st); sk = 'verify'
     noupd = (not note) or ('لم يرد تحديث' in note)
     items.append({'n':n,'section':sec,'item':item,'itemOrig':(item0 if item0!=item else ''),'status':sk,'statusRaw':st,'note':note,'date':d,
-                  'sys':system_of(sec),'floor':floor_of(sec,item),'noUpdate':noupd})
+                  'sys':system_of(sec),'noUpdate':noupd,
+                  'floor':(FLOOR_COL.get(str(r[C_FLOOR] or '').strip(), floor_of(sec0,item0)) if C_FLOOR is not None and r[C_FLOOR] else floor_of(sec0,item0))})
 latin = sorted({w for it in items for w in re.findall(r'[A-Za-z][A-Za-z0-9\-]*', it['section']+' '+it['item']+' '+it['note'])})
 out = {'asof':clean(asof), 'source':'ملف المقاول', 'builtAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),
        'systems':[{'key':k,'label':l} for k,l,_ in SYSTEMS], 'items':items}
