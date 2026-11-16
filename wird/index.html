@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ورد التدبر</title>
+<meta name="description" content="معلّمك الخاص لحفظ القرآن وفهمه: درس يومي جاهز، تدبّر، قراءة تصويرية، استحضار، متشابهات، ومراجعة متباعدة.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#101519" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#faf8f3" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ورد التدبر">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<style>
+/* الخطوط من CDN مثبّتة على إصدار محدّد، ويخزّنها التطبيق محليًا بعد أول فتح فتعمل بلا إنترنت */
+@font-face{font-family:'Amiri Quran';font-weight:400;font-style:normal;font-display:swap;
+  src:url('https://cdn.jsdelivr.net/npm/@fontsource/amiri-quran@5.3.0/files/amiri-quran-arabic-400-normal.woff2') format('woff2');
+  unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Plex Arabic';font-weight:400;font-style:normal;font-display:swap;
+  src:url('https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans-arabic@5.3.0/files/ibm-plex-sans-arabic-arabic-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Plex Arabic';font-weight:600;font-style:normal;font-display:swap;
+  src:url('https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans-arabic@5.3.0/files/ibm-plex-sans-arabic-arabic-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Plex Arabic';font-weight:700;font-style:normal;font-display:swap;
+  src:url('https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans-arabic@5.3.0/files/ibm-plex-sans-arabic-arabic-700-normal.woff2') format('woff2')}
+:root{
+  --paper:#faf8f3; --surface:#fff; --surface-2:#f1efe7; --surface-3:#e8e5da;
+  --ink:#1b2420; --ink-2:#55605a; --ink-3:#8a948e;
+  --accent:#1f6b52; --accent-soft:#e3efe9; --gold:#a2762f; --gold-soft:#f6eedd;
+  --line:#e2ded2; --warn:#9a5b1d; --warn-soft:#f6eadd; --bad:#9b3434;
+  --fv:'Amiri Quran','Traditional Arabic','Scheherazade New',serif;
+  --fu:'Plex Arabic',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --r:14px; --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]){
+  --paper:#101519; --surface:#171e23; --surface-2:#1e262c; --surface-3:#273138;
+  --ink:#e9eeea; --ink-2:#a3aea8; --ink-3:#6d7872;
+  --accent:#55b391; --accent-soft:#17302a; --gold:#c9a059; --gold-soft:#2a2316;
+  --line:#28333a; --warn:#d9a05f; --warn-soft:#2d2419; --bad:#e08585;
+  color-scheme:dark;
+}}
+html[data-theme="dark"]{
+  --paper:#101519; --surface:#171e23; --surface-2:#1e262c; --surface-3:#273138;
+  --ink:#e9eeea; --ink-2:#a3aea8; --ink-3:#6d7872;
+  --accent:#55b391; --accent-soft:#17302a; --gold:#c9a059; --gold-soft:#2a2316;
+  --line:#28333a; --warn:#d9a05f; --warn-soft:#2d2419; --bad:#e08585;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--fu);
+  font-size:15px; line-height:1.75; -webkit-text-size-adjust:100%;
+  padding-top:var(--sat); padding-bottom:var(--sab);
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:var(--sat);z-index:30;background:var(--surface)}
+h1,h2,h3,h4{margin:0;font-weight:600;text-wrap:balance;line-height:1.4}
+a{color:var(--accent)}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,var(--sal));padding-right:max(16px,var(--sar));padding-block:0 104px}
+
+/* ===== bar ===== */
+.bar{position:sticky;top:var(--sat);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  margin-inline:calc(-1*max(16px,var(--sal)));padding-inline:max(16px,var(--sal));padding-block:9px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:16px;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.brand i{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+.chips{display:flex;gap:6px;margin-inline-start:auto;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:500;padding:3px 9px;border-radius:99px;background:var(--surface-2);
+  color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums;border:0;font-family:inherit}
+.chip.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.chip.due{background:var(--warn-soft);color:var(--warn);font-weight:600}
+button.chip{cursor:pointer}
+
+/* ===== nav ===== */
+.nav{position:fixed;inset-inline:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:var(--sab);display:flex}
+.nav button{flex:1;min-width:0;background:none;border:0;font-family:inherit;font-size:11.5px;font-weight:600;
+  color:var(--ink-3);padding:9px 2px 7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav button[aria-current="page"]{color:var(--accent)}
+.nav button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+
+/* ===== cards ===== */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-top:14px}
+.card.flat{background:transparent;border-style:dashed}
+.card.tight{padding:13px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--ink-3);margin-bottom:6px}
+.muted{color:var(--ink-2)}.tiny{font-size:12.5px}.t13{font-size:13.5px}
+.sep{height:1px;background:var(--line);margin:14px 0}
+p{margin:0 0 10px}p:last-child{margin-bottom:0}
+
+/* ===== steps ===== */
+.steprail{display:flex;gap:5px;margin-bottom:13px}
+.steprail div{flex:1;height:4px;border-radius:99px;background:var(--surface-2)}
+.steprail div.done{background:var(--accent)}.steprail div.now{background:var(--gold)}
+.lesshead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:3px}
+.lesshead b{font-size:18px}.lesshead span{font-size:12px;color:var(--ink-3);font-weight:600}
+
+/* ===== verses ===== */
+.verses{font-family:var(--fv);font-size:25px;line-height:2.45;text-align:center;color:var(--ink)}
+.verses.frame{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:18px 13px}
+.v{display:block;margin-block:1px;cursor:pointer;border-radius:6px}
+.v:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.v .num{font-family:var(--fu);font-size:10.5px;font-weight:700;color:var(--gold);border:1px solid var(--gold);
+  border-radius:50%;width:19px;height:19px;display:inline-flex;align-items:center;justify-content:center;
+  vertical-align:middle;margin-inline-start:7px;line-height:1;flex:none}
+.gap{display:inline-block;min-width:2.2em;border-bottom:2px dotted var(--ink-3);vertical-align:bottom;height:1.05em}
+.v.open .gap{display:none}
+
+/* ===== buttons ===== */
+.btn{font-family:inherit;font-weight:600;font-size:14.5px;padding:11px 17px;border-radius:10px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.quiet{background:var(--surface-2);border-color:var(--line);color:var(--ink-2)}
+.btn.sm{font-size:13px;padding:8px 13px}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn[disabled]{opacity:.42;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.row .btn{flex:1;min-width:118px}
+.row.tightrow{margin-top:9px}
+
+/* ===== mastery ===== */
+.mastery{display:flex;gap:6px;margin-top:11px}
+.mastery button{flex:1;font-family:inherit;font-weight:700;font-size:16px;padding:12px 0;border-radius:10px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);cursor:pointer;font-variant-numeric:tabular-nums}
+.mastery button.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+.mlabels{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px}
+
+.timer{font-variant-numeric:tabular-nums;font-size:32px;font-weight:700;text-align:center;color:var(--accent);margin:2px 0 4px}
+
+/* ===== pairs ===== */
+.pair{border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:11px;background:var(--surface)}
+.pair .tag{font-size:11.5px;font-weight:700;color:var(--gold)}
+.pair .side{font-family:var(--fv);font-size:20px;line-height:2.15;padding:5px 0}
+.pair .side+.tag{margin-top:7px;padding-top:9px;border-top:1px dashed var(--line)}
+.pair .note{font-size:13px;color:var(--ink-2);background:var(--surface-2);border-radius:9px;padding:9px 11px;margin-top:10px;line-height:1.7}
+mark{background:var(--gold-soft);color:var(--gold);padding:0 3px;border-radius:4px;font-weight:700}
+b{color:var(--ink)}
+
+/* ===== path ===== */
+.node{display:flex;gap:11px;align-items:flex-start;padding:8px 0;position:relative}
+.node::before{content:"";position:absolute;inset-inline-start:11px;top:30px;bottom:-8px;width:2px;background:var(--line)}
+.node:last-child::before{display:none}
+.dot{flex:0 0 24px;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:var(--ink-3);
+  z-index:1;font-variant-numeric:tabular-nums}
+.node.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.node.next .dot{border-color:var(--gold);color:var(--gold)}
+.node.due .dot{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.node h4{font-size:14.5px}.node .tiny{color:var(--ink-3)}
+.stagehead{display:flex;align-items:center;gap:9px;margin:16px 0 2px;font-size:12px;font-weight:700;color:var(--gold)}
+.stagehead::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ===== ask ===== */
+.ask{display:flex;flex-direction:column;gap:9px}
+textarea,input[type=password],input[type=text],select{font-family:inherit;font-size:14.5px;padding:10px 12px;
+  border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
+textarea{min-height:76px;resize:vertical;line-height:1.7}
+.answer{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:13px;
+  font-size:14.5px;line-height:1.85;white-space:pre-wrap}
+.qsug{display:flex;gap:6px;flex-wrap:wrap}
+label{font-size:12.5px;font-weight:600;color:var(--ink-2);display:block;margin-bottom:4px}
+.field{margin-top:12px}
+.qlist{margin:0;padding-inline-start:20px}
+.qlist li{margin-bottom:5px}
+
+.empty{text-align:center;padding:30px 12px;color:var(--ink-3)}
+.toast{position:fixed;inset-inline:0;bottom:calc(72px + var(--sab));z-index:40;display:flex;justify-content:center;
+  pointer-events:none;opacity:0;transition:opacity .25s}
+.toast.show{opacity:1}
+.toast span{background:var(--ink);color:var(--paper);font-size:12.5px;font-weight:600;padding:9px 16px;border-radius:99px;max-width:88%}
+.banner{background:var(--gold-soft);border:1px solid var(--gold);color:var(--gold);border-radius:11px;
+  padding:11px 13px;font-size:13px;margin-top:14px;line-height:1.7}
+.banner b{color:var(--gold)}
+code{background:var(--surface-2);padding:1px 5px;border-radius:5px;font-size:12.5px;word-break:break-all}
+ol.steps{margin:0;padding-inline-start:20px;font-size:13.5px;line-height:1.9}
+ol.steps li{margin-bottom:7px}
+.src{font-size:11.5px;color:var(--ink-3);text-align:center;margin-top:22px;line-height:1.8}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:420px){.verses{font-size:22px;line-height:2.35}.pair .side{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <div class="brand"><i></i> ورد التدبر</div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <main id="view"><div class="empty">جاري التحميل…</div></main>
+  <div class="src" id="src"></div>
+</div>
+
+<nav class="nav" id="nav">
+  <button data-tab="today" aria-current="page">
+    <svg viewBox="0 0 24 24"><path d="M12 3v3M5 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><path d="M8 13h8M8 17h5"/></svg>
+    اليوم</button>
+  <button data-tab="path">
+    <svg viewBox="0 0 24 24"><path d="M6 4v12a4 4 0 0 0 4 4h8"/><circle cx="6" cy="4" r="2"/><circle cx="18" cy="20" r="2"/><path d="M6 11h6"/></svg>
+    المسار</button>
+  <button data-tab="similar">
+    <svg viewBox="0 0 24 24"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4zM15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4z"/><path d="M12 8v8"/></svg>
+    المتشابهات</button>
+  <button data-tab="ask">
+    <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/><path d="M12 9v.01M12 12v3"/></svg>
+    معلّمي</button>
+  <button data-tab="more">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/></svg>
+    الإعداد</button>
+</nav>
+<div class="toast" id="toast"><span></span></div>
+<script src="app.js"></script>
+</body>
+</html>
