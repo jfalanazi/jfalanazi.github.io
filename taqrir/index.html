@@ -35,6 +35,11 @@ main{background:var(--iv);min-height:60vh;padding:26px 20px calc(30px + env(safe
 .cta b{display:block;font-size:21px;font-weight:800}
 .cta span{display:block;font-size:12.5px;color:#D8C99A;margin-top:5px}
 .cta .arr{margin-inline-start:auto;font-size:22px;color:var(--gold)}
+.cta2{margin-top:12px;background:#fff;color:var(--g);box-shadow:inset 0 0 0 1.5px var(--g);padding:16px 20px}
+.cta2 .ic{width:46px;height:46px;background:rgba(185,165,116,.14);border-color:var(--gold)}
+.cta2 b{font-size:18px;color:var(--g)}
+.cta2 span{color:var(--mut)}
+.cta2 .arr{color:var(--goldt)}
 .month{display:flex;justify-content:center;align-items:center;gap:8px;margin:14px 0 26px;font-size:12.5px;color:var(--mut)}
 .month i{width:7px;height:7px;background:var(--gold);transform:rotate(45deg);display:inline-block}
 .sec{display:flex;align-items:center;gap:10px;margin:6px 0 12px}
@@ -69,6 +74,11 @@ footer{text-align:center;font-size:11.5px;color:var(--mut);padding:18px 0 4px;bo
   <a class="cta" id="cta" href="https://forms.office.com/Pages/ResponsePage.aspx?id=fMzMsIxEZEi4kOiz8zY-GAhG_XrhEEtFiQz8oHJbvuNUN0RFTUE2Q1VCQzBSSjAzNDJON0xZM1BGOS4u&lang=ar-LB" rel="noopener">
     <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D8C99A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></span>
     <span><b>أرسل خبرًا</b><span>يفتح نموذج الإدخال — خبر واحد لكل إرسال</span></span>
+    <span class="arr">‹</span>
+  </a>
+  <a class="cta cta2" id="cta2" href="https://forms.cloud.microsoft/r/qA5FPQkLVF?lang=ar-LB" rel="noopener">
+    <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6636" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+    <span><b>أرسل مناسبة أو توصية</b><span>مطعم · معلم · منتزه · مقهى — للنشرة الصحفية</span></span>
     <span class="arr">‹</span>
   </a>
   <div class="month"><i></i><span id="label"></span></div>
@@ -106,9 +116,11 @@ footer{text-align:center;font-size:11.5px;color:var(--mut);padding:18px 0 4px;bo
 /* ===== التحديث الشهري: غيّر هذين السطرين فقط ===== */
 const FORM_URL   = "https://forms.office.com/Pages/ResponsePage.aspx?id=fMzMsIxEZEi4kOiz8zY-GAhG_XrhEEtFiQz8oHJbvuNUN0RFTUE2Q1VCQzBSSjAzNDJON0xZM1BGOS4u&lang=ar-LB";
 const FORM_LABEL = "النموذج الحالي: أخبار التقرير الصحفي 2026";
+const EVENTS_URL = "https://forms.cloud.microsoft/r/qA5FPQkLVF?lang=ar-LB"; // نموذج المناسبات والمطاعم (سنوي)
 const GUIDE_URL  = "";   // رابط دليل المحرر PDF (اختياري)
 /* ================================================== */
 document.getElementById('cta').href=FORM_URL;
+document.getElementById('cta2').href=EVENTS_URL;
 document.getElementById('label').textContent=FORM_LABEL;
 if(GUIDE_URL){document.getElementById('guide').style.display='block';document.getElementById('guideLink').href=GUIDE_URL}
 const sa=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
